@@ -17,7 +17,6 @@
 > The whole project runs through `make`. You only need **Docker** and **Git**.
 
 ```bash
-git clone <your-repo-url> celestial-desk
 git clone https://github.com/fermow/planner.git celestial-desk
 cd celestial-desk
 
