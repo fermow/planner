@@ -2,7 +2,7 @@ const en: Record<string, string> = {
   "app.title": "Celestial Desk",
   "app.title.kitty": "🎀 Celestial Desk",
   "app.tagline": "Your universe of tasks",
-  "app.version": "Celestial Desk v1.1",
+  "app.version": "Celestial Desk v1.1.0",
 
   "nav.dashboard": "Dashboard",
   "nav.deadlines": "Deadlines",

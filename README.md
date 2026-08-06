@@ -255,7 +255,7 @@ make install        # runs scripts/install-docker.sh
 # 3. Log out and back in (or run: newgrp docker) so Docker works without sudo
 
 # 4. Clone, setup and start
-git clone <your-repo-url> celestial-desk && cd celestial-desk
+git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
 ```
@@ -288,7 +288,7 @@ sudo usermod -aG docker $USER
 Then (re-login first):
 
 ```bash
-git clone <your-repo-url> celestial-desk && cd celestial-desk
+git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
 ```
@@ -309,7 +309,7 @@ make install        # runs: brew install --cask docker
 # 4. Open "Docker Desktop" once from Applications and let it finish starting
 
 # 5. Clone, setup and start
-git clone <your-repo-url> celestial-desk && cd celestial-desk
+git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
 ```
@@ -323,7 +323,7 @@ Two supported options — **choose one**:
 **Option A — WSL2 (recommended):** install [WSL](https://learn.microsoft.com/windows/wsl/install) + Ubuntu, install [Docker Desktop](https://www.docker.com/products/docker-desktop/), then inside your Ubuntu WSL terminal:
 
 ```bash
-git clone <your-repo-url> celestial-desk && cd celestial-desk
+git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
 ```

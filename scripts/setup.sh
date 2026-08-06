@@ -10,7 +10,7 @@ if [ -f .env ]; then
   echo "✓ .env already exists — keeping it"
 else
   cp .env.example .env
-  echo "✓ Created .env from .env.example — edit it if you like (TZ, Ollama, ...)"
+  echo "✓ Created .env from .env.example — edit it if you like (TZ, LOG_LEVEL, ...)"
 fi
 
 mkdir -p data
