@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, SportEntry, FinanceCard, FinanceTransaction, LifeTreeEntry, Connection, Habit } from '../types';
+import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, SportEntry, FinanceCard, FinanceTransaction, LifeTreeEntry, Connection, Habit, MusicTrack } from '../types';
 import { api } from '../api/client';
 import { t } from '../i18n/t';
 
@@ -84,6 +84,7 @@ interface AppState {
   lifeTree: LifeTreeEntry[];
   connections: Connection[];
   notifications: Notification[];
+  music: MusicTrack[];
 
   loading: boolean;
   error: string | null;
@@ -189,6 +190,12 @@ interface AppState {
   clearRecentConnectionSearches: () => void;
   recentConnectionSearches: string[];
 
+  // Music
+  fetchMusic: () => Promise<void>;
+  uploadMusic: (file: File) => Promise<void>;
+  editMusic: (id: string, data: any) => Promise<void>;
+  removeMusic: (id: string) => Promise<void>;
+
   // Bulk fetch
   fetchAll: () => Promise<void>;
 }
@@ -227,6 +234,7 @@ export const useStore = create<AppState>((set, get) => ({
   lifeTree: [],
   connections: [],
   notifications: [],
+  music: [],
   browserNotifEnabled: loadBrowserNotifEnabled(),
   loading: false,
   error: null,
@@ -658,6 +666,45 @@ export const useStore = create<AppState>((set, get) => ({
       await api.updateConnectionPositions(positions);
     } catch (e: any) {
       console.error('Failed to save positions:', e);
+    }
+  },
+
+  fetchMusic: async () => {
+    try {
+      const data = await api.getMusic();
+      set({ music: data });
+    } catch (e: any) {
+      set({ error: e.message });
+    }
+  },
+
+  uploadMusic: async (file) => {
+    try {
+      await api.uploadMusic(file);
+      await get().fetchMusic();
+      get().showToast(t('music.added'), 'success');
+    } catch (e: any) {
+      get().showToast(e?.message || 'Failed to upload audio', 'error');
+    }
+  },
+
+  editMusic: async (id, data) => {
+    try {
+      await api.updateMusic(id, data);
+      await get().fetchMusic();
+      get().showToast(t('music.updated'), 'success');
+    } catch (e: any) {
+      get().showToast(e?.message || 'Failed to update track', 'error');
+    }
+  },
+
+  removeMusic: async (id) => {
+    try {
+      await api.deleteMusic(id);
+      await get().fetchMusic();
+      get().showToast(t('music.removed'), 'success');
+    } catch (e: any) {
+      get().showToast(e?.message || 'Failed to delete track', 'error');
     }
   },
 

@@ -111,4 +111,16 @@ export const api = {
   searchConnections: (q: string) => request<any[]>(`/connections/search?q=${encodeURIComponent(q)}`),
   updateConnectionPositions: (positions: { id: string; x: number; y: number }[]) =>
     request<any>('/connections/positions/bulk', { method: 'POST', body: JSON.stringify(positions) }),
+
+  // Music
+  getMusic: () => request<any[]>('/music'),
+  uploadMusic: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${BASE}/music/upload`, { method: 'POST', body: form });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  updateMusic: (id: string, data: any) => request<any>(`/music/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteMusic: (id: string) => request<any>(`/music/${id}`, { method: 'DELETE' }),
 };

@@ -48,7 +48,7 @@ services:
     container_name: celestial-desk-frontend-dev
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "3030:80"
     extra_hosts:

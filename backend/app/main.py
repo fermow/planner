@@ -25,6 +25,7 @@ from app.routes import (
     finance,
     life_tree,
     connection,
+    music,
 )
 from app.scheduler.notification_scheduler import (
     start_scheduler,
@@ -79,6 +80,7 @@ app.include_router(habits.router)
 app.include_router(finance.router)
 app.include_router(life_tree.router)
 app.include_router(connection.router)
+app.include_router(music.router)
 
 
 @app.get("/api/health")

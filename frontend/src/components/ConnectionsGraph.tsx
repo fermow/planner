@@ -94,7 +94,15 @@ export default function ConnectionsGraph({
     const updateSize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        setDimensions({ width: rect.width, height: rect.height });
+        const w = rect.width;
+        const h = rect.height;
+        setDimensions({ width: w, height: h });
+        // Center the view on the "me" node (world origin) once the real
+        // size is known, so the graph never starts in the corner.
+        if (!centeredRef.current && w > 0 && h > 0) {
+          centeredRef.current = true;
+          setPan({ x: w / 2, y: h / 2 });
+        }
       }
       setIsMobile(window.innerWidth < 768);
     };
@@ -368,7 +376,11 @@ export default function ConnectionsGraph({
   // --- Controls ---
   const handleZoomIn = () => setScale((s) => Math.min(MAX_SCALE, s * 1.25));
   const handleZoomOut = () => setScale((s) => Math.max(MIN_SCALE, s / 1.25));
-  const handleResetView = () => { setScale(INITIAL_SCALE); setPan({ x: 0, y: 0 }); };
+  const centerOnOrigin = () => {
+    setScale(INITIAL_SCALE);
+    setPan({ x: dimensions.width / 2, y: dimensions.height / 2 });
+  };
+  const handleResetView = centerOnOrigin;
 
   const handleCenterSelected = () => {
     if (selectedIds.size === 0) return;
@@ -669,9 +681,21 @@ export default function ConnectionsGraph({
 
                 {isMe && (
                   <circle
-                    r={ME_RADIUS + 20}
+                    r={ME_RADIUS + 26}
                     fill="url(#meGlow)"
                     style={{ animation: 'pulse 3s ease-in-out infinite' }}
+                  />
+                )}
+
+                {isMe && (
+                  <circle
+                    r={ME_RADIUS + 12}
+                    fill="none"
+                    stroke="#40e0d0"
+                    strokeWidth={2}
+                    strokeDasharray="4 6"
+                    strokeOpacity={0.35}
+                    style={{ animation: 'spin 30s linear infinite' }}
                   />
                 )}
 
@@ -696,8 +720,8 @@ export default function ConnectionsGraph({
                 <text
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fontSize={isMe ? 24 : 18}
-                  y={0}
+                  fontSize={isMe ? 30 : 18}
+                  y={isMe ? -3 : 0}
                   style={{ pointerEvents: 'none', userSelect: 'none', lineHeight: 1 }}
                 >
                   {icon}

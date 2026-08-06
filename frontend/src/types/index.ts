@@ -272,6 +272,16 @@ export interface Connection {
   updated_at: string;
 }
 
+export interface MusicTrack {
+  id: string;
+  title: string;
+  artist: string;
+  filename: string;
+  size: number;
+  duration?: number | null;
+  created_at: string;
+}
+
 export type Page = 
   | 'dashboard'
   | 'deadlines'
@@ -283,5 +293,6 @@ export type Page =
   | 'sports'
   | 'finance'
   | 'life-tree'
-  | 'connections';
+  | 'connections'
+  | 'music';
 

@@ -142,11 +142,22 @@ Open **http://localhost:3030** — done.
 
 ### 🌐 Connections
 
-People and relationships, organized as a graph:
+![Connections](docs/screenshots/connections.png)
 
 - Force-directed visualization of your connections
 - Search, tags and relationships between people
 - Add and edit connections with emoji, colors and labels
+- Auto-centers on you, with a pulsing ring around the current node
+
+### 🎵 My Music
+
+![Music](docs/screenshots/music.png)
+
+- Upload your own audio files (MP3 · WAV · OGG · M4A · FLAC · AAC · OPUS · WEBM) — single or multiple at once, or drag & drop
+- Full in-app player with play / pause / next / previous, seek bar and volume control
+- Live **Web Audio visualizer** on every cover while a track plays
+- Edit track title & artist, or delete tracks
+- Files are stored locally on your server (`data/music/`)
 
 ### ⚙️ Settings
 
@@ -185,7 +196,8 @@ People and relationships, organized as a graph:
 │   http://localhost:8000  ·  docs at /docs                  │
 │   Routes: deadlines, planner, journal, boards, tables,     │
 │   whiteboards, sports, habits, finance, life-tree,         │
-│   connections, reports, daily-summary, search, backup      │
+│   connections, music, reports, daily-summary, search,      │
+│   backup                                                   │
 └──────────────┬────────────────────────────────────────────┘
                │
 ┌──────────────▼────────────────────────────────────────────┐
@@ -363,6 +375,7 @@ All data lives as JSON files in `./data/` on your host (mounted into the contain
 | `finance_cards.json` / `finance_transactions.json` | Finance data |
 | `life_tree.json`         | Life Tree goals                   |
 | `connections.json`       | People/relationships graph        |
+| `music.json` + `music/`  | Favorite tracks (metadata + files)|
 | `notification_history.json` | Notification log              |
 | `daily_summaries.json`   | Auto-generated daily summaries    |
 
@@ -393,6 +406,7 @@ Interactive docs are at **http://localhost:8000/docs**. All endpoints live under
 | Finance     | `GET/POST /api/finance/cards`, `GET/POST /api/finance/transactions`, ... |
 | Life Tree   | `GET/POST /api/life-tree`, `PATCH/DELETE /api/life-tree/{id}` |
 | Connections | `GET/POST /api/connections`, search, positions, ... |
+| Music       | `GET /api/music`, `POST /api/music/upload`, `GET /api/music/file/{filename}`, `PATCH/DELETE /api/music/{id}` |
 | Reports     | `GET /api/report?start_date=&end_date=` |
 | Summary     | `GET /api/daily-summary?date=`, `GET /api/daily-summary/range?start_date=&end_date=` |
 | Search      | `GET /api/search?q=...` |

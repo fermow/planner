@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Bell, Menu, LayoutDashboard, Clock, Calendar,
-  BookOpen, Columns3, BarChart3, Settings, Sparkles, Wallet, TreePine, Users,
+  BookOpen, Columns3, BarChart3, Settings, Sparkles, Wallet, TreePine, Users, Music4,
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationToast from './NotificationToast';
@@ -22,6 +22,7 @@ import SportsPage from '../pages/Sports';
 import FinancePage from '../pages/Finance';
 import LifeTreePage from '../pages/LifeTree';
 import ConnectionsPage from '../pages/Connections';
+import MusicPage from '../pages/Music';
 
 export default function Layout() {
   const { currentPage, setPage, toggleSearch, notifications, dismissNotification, sidebarOpen, toggleSidebar, setSidebarOpen, theme, toggleTheme } = useStore();
@@ -41,6 +42,7 @@ export default function Layout() {
     finance: t('nav.finance'),
     'life-tree': t('nav.lifeTree'),
     connections: t('nav.connections'),
+    music: t('nav.music'),
   };
 
   const bottomNavItems: { page: Page; label: string; icon: React.ReactNode }[] = [
@@ -52,6 +54,7 @@ export default function Layout() {
     { page: 'connections', label: t('nav.people'), icon: <Users size={20} /> },
     { page: 'finance', label: t('nav.finance'), icon: <Wallet size={20} /> },
     { page: 'reports', label: t('nav.reports'), icon: <BarChart3 size={20} /> },
+    { page: 'music', label: t('nav.music'), icon: <Music4 size={20} /> },
   ];
 
   const timeStr = clock.toLocaleTimeString('en-US', {
@@ -179,6 +182,7 @@ export default function Layout() {
           {currentPage === 'finance' && <FinancePage key="finance" />}
           {currentPage === 'life-tree' && <LifeTreePage key="life-tree" />}
           {currentPage === 'connections' && <ConnectionsPage key="connections" />}
+          {currentPage === 'music' && <MusicPage key="music" />}
         </main>
       </div>
 
