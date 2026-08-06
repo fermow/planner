@@ -60,7 +60,7 @@ Open **http://localhost:3030** — done.
 
 ---
 
-## ✨ Features & Screenshots
+## ✨ Features 
 
 ### 📊 Dashboard
 
