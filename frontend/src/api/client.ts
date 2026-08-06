@@ -81,6 +81,12 @@ export const api = {
   deleteSportEntry: (id: string) => request<any>(`/sports/${id}`, { method: 'DELETE' }),
   getSportByDate: (date: string) => request<any>(`/sports/date/${date}`),
 
+  // Habits
+  getHabits: () => request<any[]>('/habits'),
+  createHabit: (data: any) => request<any>('/habits', { method: 'POST', body: JSON.stringify(data) }),
+  updateHabit: (id: string, data: any) => request<any>(`/habits/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteHabit: (id: string) => request<any>(`/habits/${id}`, { method: 'DELETE' }),
+
   // Finance
   getFinanceCards: () => request<any[]>('/finance/cards'),
   createFinanceCard: (data: any) => request<any>('/finance/cards', { method: 'POST', body: JSON.stringify(data) }),
@@ -102,34 +108,7 @@ export const api = {
   createConnection: (data: any) => request<any>('/connections', { method: 'POST', body: JSON.stringify(data) }),
   updateConnection: (id: string, data: any) => request<any>(`/connections/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteConnection: (id: string) => request<any>(`/connections/${id}`, { method: 'DELETE' }),
-
-  // AI Chat
-  aiChatStream: (messages: any[], mode: string = 'chat', onChunk: (text: string) => void, onDone: (timestamp: string) => void) => {
-    fetch(`${BASE}/ai/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, mode }),
-    }).then(async (res) => {
-      if (!res.ok) throw new Error('Chat request failed');
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const text = decoder.decode(value, { stream: true });
-        const lines = text.split('\n');
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-            if (data.chunk) onChunk(data.chunk);
-            if (data.done) onDone(data.timestamp);
-          } catch {}
-        }
-      }
-    });
-  },
-  aiHealth: () => request<any>('/ai/health'),
-  aiHistory: (limit: number = 50) => request<any>(`/ai/history?limit=${limit}`),
-  aiClearHistory: () => request<any>('/ai/history', { method: 'DELETE' }),
+  searchConnections: (q: string) => request<any[]>(`/connections/search?q=${encodeURIComponent(q)}`),
+  updateConnectionPositions: (positions: { id: string; x: number; y: number }[]) =>
+    request<any>('/connections/positions/bulk', { method: 'POST', body: JSON.stringify(positions) }),
 };

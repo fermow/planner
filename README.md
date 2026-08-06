@@ -1,51 +1,88 @@
 # ✦ Celestial Desk
 
-A beautiful, self-hosted productivity and deadline management system inspired by the night sky. Built for **Debian 13**, fully dockerized, with a dreamy aesthetic and powerful deadline tracking.
+**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, journal, boards, life goals, finance, and sports, all behind a dreamy "Starry Night" interface.
 
 > *"What makes the desert beautiful,' said the little prince, 'is that somewhere it hides a well."*
-> — Antoine de Saint-Exupéry, The Little Prince
+> — Antoine de Saint-Exupéry, *The Little Prince*
+
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Frontend: React](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-61dafb.svg)
+![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)
+![Deploy: Docker](https://img.shields.io/badge/Deploy-Docker%20Compose-2496ed.svg)
 
 ---
 
 ## ✨ Features
 
-- **Deadline Manager** — Create, track, and get reminded about deadlines
-- **Smart Notifications** — Desktop notifications at 3d, 2d, 1d, and 1h before deadlines
-- **Startup Catch-up** — Detects and shows missed notifications if system was off
-- **Weekly Planner** — Day-by-day grid with time blocks, mood tracking, and notes
-- **Daily Journal** — Record what you did, your plans, and reflections with mood tracking
-- **Trello-like Boards** — Drag-and-drop card organization with checklists and tags
-- **Notes System** — Long-term and short-term notes with Markdown support and categorization
-- **Dashboard** — Overview of deadlines, tasks, goals, and weekly progress
-- **Global Search** — Instant search across all your data (Ctrl+K)
-- **Import/Export** — Full JSON backup and restore
-- **Keyboard Shortcuts** — Quick navigation and actions
+| Module | What it does |
+|--------|--------------|
+| **Dashboard** | Overview of overdue/due-soon deadlines, completed today, real **weekly progress**, daily habits, hours breakdown chart, tag performance and this week's plan |
+| **Deadlines** | Create, track and complete deadlines with priority, tags and subtasks |
+| **Smart Notifications** | Browser/OS alerts at **3d, 2d, 1d and 1h** before a deadline, plus overdue alerts and **startup catch-up** for anything you missed while offline — available on any OS (Windows, macOS, Linux) |
+| **Weekly Planner** | Day-by-day grid with time blocks, tags, completion tracking, mood and notes |
+| **Daily Journal** | Record *what you did*, *plans* and *reflections*, with mood tracking and Markdown |
+| **Boards** | Trello-like drag-and-drop boards **+ tables + freeform whiteboards** |
+| **Life Tree** | Visualize long-term and short-term goals as a tree (with a 3D view) |
+| **Connections** | A people/relationships graph with search, tags and a force-directed visualization |
+| **Reports** | Daily / weekly / monthly reports and an auto-generated **daily summary** |
+| **Sports** | Log workouts and track duration |
+| **Finance** | Cards, income/expense transactions and categorization |
+| **Daily Habits** | Fillable habit boxes (up to 6) with edit/delete |
+| **Global Search** | Instant search across everything (`Ctrl+K`) |
+| **Backup / Restore** | One-click JSON export/import in Settings, or CLI backups via `make backup` |
+| **Themes** | "Cosmic" (navy & teal) and "🎀 Kitty" (Hello Kitty pink) |
 
-## 🎨 Design Philosophy
+---
 
-- Dark navy aesthetic inspired by Van Gogh's *Starry Night*
-- Glassmorphism cards with subtle glows
-- Animated star field with shooting particles
-- Mouse-reactive ambient glow
-- Calming, premium, handcrafted feel
-- Responsive layout for desktop and tablet
+## 📸 Screenshots
+
+| | |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Planner](docs/screenshots/planner.png) |
+| ![Deadlines](docs/screenshots/deadlines.png) | ![Journal](docs/screenshots/journal.png) |
+| ![Boards](docs/screenshots/boards.png) | ![Reports](docs/screenshots/reports.png) |
+| ![Sports](docs/screenshots/sports.png) | ![Finance](docs/screenshots/finance.png) |
+| ![Life Tree](docs/screenshots/life-tree.png) | ![Connections](docs/screenshots/connections.png) |
+| ![Settings](docs/screenshots/settings.png) | |
+
+---
+
+## 🧩 Tech Stack
+
+| Layer     | Technology |
+|-----------|------------|
+| Frontend  | React 18 · TypeScript · Vite · TailwindCSS · Framer Motion · Zustand · Three.js |
+| Backend   | Python 3.12 · FastAPI · APScheduler · plyer |
+| Storage   | JSON files with atomic writes (no database required) |
+| Deployment| Docker · Docker Compose · Nginx |
+
+---
 
 ## 🏗 Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Frontend (React)                  │
-│  Port 3000  │  Vite + TailwindCSS + Framer Motion   │
-├─────────────────────────────────────────────────────┤
-│                    Backend (FastAPI)                  │
-│  Port 8000  │  Python / APScheduler / plyer          │
-├─────────────────────────────────────────────────────┤
-│                   Data (JSON files)                   │
-│  /data      │  deadlines.json / notes.json / ...      │
-└─────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                  Frontend (React + Vite)                   │
+│   Dev : Vite dev server → http://localhost:3030            │
+│   Prod: Nginx (static build) → http://localhost:3030       │
+└──────────────┬────────────────────────────────────────────┘
+               │  /api/*  (reverse-proxied by Vite / Nginx)
+┌──────────────▼────────────────────────────────────────────┐
+│                  Backend (FastAPI)                         │
+│   http://localhost:8000  ·  docs at /docs                  │
+│   Routes: deadlines, planner, journal, boards, tables,     │
+│   whiteboards, sports, habits, finance, life-tree,         │
+│   connections, reports, daily-summary, search, backup   │
+└──────────────┬────────────────────────────────────────────┘
+               │
+┌──────────────▼────────────────────────────────────────────┐
+│               Data (JSON files, host ./data/)              │
+│   deadlines.json · planner.json · journal.json · ...       │
+│   Daily summaries · chat history · notification history    │
+└────────────────────────────────────────────────────────────┘
 ```
 
-### Project Structure
+### Project structure
 
 ```
 celestial-desk/
@@ -53,286 +90,313 @@ celestial-desk/
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── app/
-│       ├── main.py              # FastAPI entry point
-│       ├── config.py            # Configuration
-│       ├── models/              # Pydantic data models
-│       │   ├── deadline.py
-│       │   ├── note.py
-│       │   ├── planner.py
-│       │   ├── journal.py
-│       │   └── board.py
-│       ├── routes/              # API endpoints
-│       │   ├── deadlines.py
-│       │   ├── notes.py
-│       │   ├── planner.py
-│       │   ├── journal.py
-│       │   ├── boards.py
-│       │   ├── notifications.py
-│       │   ├── search.py
-│       │   └── backup.py
-│       ├── services/
-│       │   ├── storage.py              # JSON file-based persistence
-│       │   └── notification_service.py  # Desktop notifications via plyer
-│       └── scheduler/
-│           └── notification_scheduler.py  # APScheduler deadline checks
+│       ├── main.py                 # FastAPI entry point
+│       ├── config.py               # Environment configuration
+│       ├── models/                 # Pydantic models (one per module)
+│       ├── routes/                 # API routers (one per module)
+│       ├── services/               # Storage engine, notifications
+│       └── scheduler/              # APScheduler deadline engine
 ├── frontend/
 │   ├── Dockerfile
-│   ├── nginx.conf
-│   ├── index.html
-│   ├── package.json
-│   ├── tailwind.config.ts
+│   ├── nginx.conf                  # Production reverse proxy
 │   ├── vite.config.ts
 │   └── src/
-│       ├── main.tsx
-│       ├── App.tsx
-│       ├── index.css             # Theme system, glass cards, animations
-│       ├── types/index.ts        # TypeScript interfaces
-│       ├── api/client.ts         # API client
-│       ├── store/useStore.ts     # Zustand state management
-│       ├── components/
-│       │   ├── StarBackground.tsx  # Animated canvas star field
-│       │   ├── Sidebar.tsx
-│       │   ├── Layout.tsx
-│       │   ├── SearchModal.tsx
-│       │   └── NotificationToast.tsx
-│       └── pages/
-│           ├── Dashboard.tsx
-│           ├── Deadlines.tsx
-│           ├── Planner.tsx
-│           ├── Journal.tsx
-│           ├── Boards.tsx
-│           ├── Notes.tsx
-│           └── Settings.tsx
+│       ├── api/client.ts           # Typed API client
+│       ├── store/useStore.ts       # Zustand state
+│       ├── components/             # Layout, Sidebar, StarBackground, ...
+│       ├── pages/                  # One page per module
+│       ├── i18n/                   # Translation keys
+│       └── types/                  # TypeScript interfaces
 ├── scripts/
-│   ├── start.sh
-│   ├── stop.sh
-│   └── logs.sh
+│   ├── install-docker.sh           # OS-aware Docker install
+│   ├── doctor.sh                   # Environment check
+│   ├── setup.sh                    # .env + data dir
+│   ├── backup.sh / restore.sh      # Data backups
+│   ├── start.sh / stop.sh / logs.sh
+│   └── enable-boot.sh              # Auto-start on boot (systemd)
 ├── docker-compose.yml
 ├── .env.example
-└── README.md
+└── Makefile                        # One-command everything
 ```
 
-## 🚀 Quick Start (Debian 13)
+---
 
-### Prerequisites
+## 🚀 Quick Start
+
+> The whole project runs through `make`. You only need **Docker** and **Git**.
 
 ```bash
-# Install Docker
-sudo apt update && sudo apt install -y docker.io docker-compose-v2
+git clone <your-repo-url> celestial-desk
+cd celestial-desk
 
-# Add your user to docker group
-sudo usermod -aG docker $USER
+make install   # only if Docker is not installed yet (auto-detects your OS)
+make doctor    # optional: verify Docker, Compose, ports, .env
+make setup     # creates .env + data/  (first time only)
+make up        # builds and starts the app
+```
+
+Open **http://localhost:3030** — done.
+
+### All Makefile commands
+
+| Command                 | What it does                                          |
+|-------------------------|-------------------------------------------------------|
+| `make help`             | List every available command                          |
+| `make install`          | Install Docker + Compose for your OS (Linux/macOS)    |
+| `make doctor`           | Check prerequisites (Docker, Compose, ports, `.env`)  |
+| `make setup`            | One-time setup: create `.env` + `data/`               |
+| `make up`               | Build & start (development mode, hot reload)          |
+| `make prod`             | Build & start (production/optimized build)            |
+| `make dev`              | Start only the frontend dev server                    |
+| `make stop` / `make down` | Stop all services (data is kept)                    |
+| `make restart`          | Restart all services                                  |
+| `make ps`               | Show running services                                 |
+| `make build`            | Build the Docker images                               |
+| `make rebuild`          | Rebuild images and restart the stack                  |
+| `make logs`             | Follow logs of all services                           |
+| `make logs-backend`     | Follow backend logs                                   |
+| `make logs-frontend`    | Follow frontend (dev) logs                            |
+| `make backup`           | Timestamped backup of `./data` → `data/backups/`      |
+| `make restore FILE=...` | Restore a backup into `./data`                        |
+| `make enable-boot`      | Auto-start on boot (Linux / systemd)                  |
+| `make clean`            | Remove containers & anonymous volumes (keeps `./data`)|
+
+---
+
+## 🖥 Platform Guides
+
+### 1. Debian / Ubuntu (and Mint, Pop!_OS, ...)
+
+```bash
+# 1. Install prerequisites
+sudo apt update
+sudo apt install -y git make curl ca-certificates
+
+# 2. Install Docker + Compose (also installs libnotify-bin for desktop alerts)
+make install        # runs scripts/install-docker.sh
+
+# 3. Log out and back in (or run: newgrp docker) so Docker works without sudo
+
+# 4. Clone, setup and start
+git clone <your-repo-url> celestial-desk && cd celestial-desk
+make setup
+make up
+```
+
+**Manual alternative** (if you don't want to use `make`):
+
+```bash
+sudo apt install -y docker.io docker-compose-v2 libnotify-bin
+sudo usermod -aG docker $USER        # then re-login
 newgrp docker
 
-# Install notify-send (for desktop notifications)
-sudo apt install -y libnotify-bin
-```
-
-### Installation
-
-```bash
-# Clone or copy the project
-cd ~/celestial-desk
-
-# Start the application
+./scripts/setup.sh
 ./scripts/start.sh
 ```
 
-### Access
-
-| Service  | URL                    |
-|----------|------------------------|
-| Frontend | http://localhost:3000  |
-| Backend  | http://localhost:8000  |
-| API Docs | http://localhost:8000/docs |
-
-### Commands
+### 2. Other Linux (Fedora / RHEL / Arch)
 
 ```bash
-./scripts/start.sh   # Build and start all services
-./scripts/stop.sh    # Stop all services
-./scripts/logs.sh    # View logs (add -f for follow)
+# Fedora / RHEL / Rocky
+sudo dnf install -y git make docker docker-compose-plugin libnotify
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+
+# Arch / Manjaro
+sudo pacman -Sy git make docker docker-compose libnotify
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
 ```
+
+Then (re-login first):
+
+```bash
+git clone <your-repo-url> celestial-desk && cd celestial-desk
+make setup
+make up
+```
+
+> 💡 If you already have Docker installed on any Linux distro, just run `make doctor` to verify, then `make up`.
+
+### 3. macOS
+
+```bash
+# 1. Install command-line tools (provides make, git, etc.)
+xcode-select --install
+
+# 2. Install Homebrew (if needed): https://brew.sh
+
+# 3. Install Docker Desktop
+make install        # runs: brew install --cask docker
+
+# 4. Open "Docker Desktop" once from Applications and let it finish starting
+
+# 5. Clone, setup and start
+git clone <your-repo-url> celestial-desk && cd celestial-desk
+make setup
+make up
+```
+
+> Apple Silicon (M1/M2/M3) and Intel both work — Docker Desktop runs natively.
+
+### 4. Windows
+
+Two supported options — **choose one**:
+
+**Option A — WSL2 (recommended):** install [WSL](https://learn.microsoft.com/windows/wsl/install) + Ubuntu, install [Docker Desktop](https://www.docker.com/products/docker-desktop/), then inside your Ubuntu WSL terminal:
+
+```bash
+git clone <your-repo-url> celestial-desk && cd celestial-desk
+make setup
+make up
+```
+
+**Option B — Git Bash:** install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/), then open **Git Bash** and run:
+
+```bash
+make setup
+make up
+```
+
+> ⚠️ `make` and the helper scripts are bash-based, so use **WSL2** or **Git Bash** — the plain `cmd.exe` / PowerShell prompt is not supported. Deadline notifications work on any OS via the browser's notification API (enable it in **Settings**); on Windows set `TZ` in `.env`.
+
+---
 
 ## ⚙️ Configuration
 
-Copy `.env.example` to `.env` and adjust:
+Copy `.env.example` to `.env` (done automatically by `make setup`) and adjust:
 
 ```env
-TZ=Asia/Tehran           # Your timezone
-LOG_LEVEL=INFO           # Debug logging
-DATA_DIR=/data           # Data storage path (container)
+TZ=UTC                                 # Your IANA timezone (e.g. Europe/Berlin, America/New_York, Asia/Tehran)
+LOG_LEVEL=INFO                         # DEBUG | INFO | WARNING | ERROR
+DATA_DIR=/data                         # Path inside the container (leave as-is)
 ```
 
-### Desktop Notifications
+- `TZ` controls all date handling and the deadline notification engine. It boots to **UTC** by default so any machine works out of the box. On Linux, `scripts/start.sh` auto-detects your system timezone (`Europe/Berlin`, `Asia/Tehran`, ...) when `TZ` is left unset — on macOS/Windows set it manually in `.env`.
 
-Celestial Desk sends native Linux desktop notifications for deadlines:
+### Services & ports
 
-- **3 days before** — Low urgency
-- **2 days before** — Low urgency  
-- **1 day before** — Normal urgency
-- **1 hour before** — Critical urgency
-- **Overdue** — Critical urgency
+| Service  | URL                      |
+|----------|--------------------------|
+| Frontend | http://localhost:3030    |
+| Backend  | http://localhost:8000    |
+| API Docs | http://localhost:8000/docs |
 
-If your system is off during a notification window, the app will **catch up** on startup and show all missed notifications immediately.
+---
 
-## 🗄 Data Persistence
+## 💾 Data & Backups
 
-Your data is stored in `/home/mobinabedian/celestial-desk-data/` on the host machine. This directory is bind-mounted into the container and **survives restarts and container recreation**.
+All data lives as JSON files in `./data/` on your host (mounted into the container at `/data`). It **survives restarts and container recreation**.
 
-### Data Files
+| File                     | Contents                          |
+|--------------------------|-----------------------------------|
+| `deadlines.json`         | Deadlines, subtasks, reminder flags |
+| `planner.json`           | Weekly planner entries            |
+| `journal.json`           | Journal entries                   |
+| `whiteboards.json`       | Whiteboards                       |
+| `sports.json`            | Workout logs                      |
+| `habits.json`            | Daily habits                      |
+| `finance_cards.json` / `finance_transactions.json` | Finance data |
+| `life_tree.json`         | Life Tree goals                   |
+| `connections.json`       | People/relationships graph        |
+| `notification_history.json` | Notification log              |
+| `daily_summaries.json`   | Auto-generated daily summaries    |
 
-| File                    | Contents                    |
-|-------------------------|-----------------------------|
-| `deadlines.json`        | All deadlines with reminders|
-| `notes.json`            | Notes with categories       |
-| `planner.json`          | Weekly planner entries      |
-| `journal.json`          | Daily journal entries       |
-| `boards.json`           | Trello boards/columns/cards |
-| `notification_history.json` | Notification log       |
+**Backups**
 
-### Example: deadlines.json
-
-```json
-[
-  {
-    "id": "a1b2c3d4e5f6",
-    "title": "Submit quarterly report",
-    "description": "Q4 financial review",
-    "due_date": "2026-06-15T09:00:00Z",
-    "priority": "high",
-    "tags": ["work", "finance"],
-    "status": "pending",
-    "progress": 0,
-    "reminder_enabled": true,
-    "reminded_3d": false,
-    "reminded_2d": false,
-    "reminded_1d": false,
-    "reminded_1h": false,
-    "created_at": "2026-05-20T10:00:00Z",
-    "updated_at": "2026-05-20T10:00:00Z"
-  }
-]
+```bash
+make backup                    # → data/backups/celestial-desk-<timestamp>.tar.gz
+make restore FILE=data/backups/celestial-desk-<timestamp>.tar.gz
 ```
 
-## 🔌 API Endpoints
+You can also export/import a single JSON file from **Settings → Data**.
 
-### Deadlines
-| Method | Endpoint                     | Description        |
-|--------|------------------------------|--------------------|
-| GET    | `/api/deadlines`             | List all deadlines |
-| POST   | `/api/deadlines`             | Create deadline    |
-| GET    | `/api/deadlines/{id}`        | Get deadline       |
-| PATCH  | `/api/deadlines/{id}`        | Update deadline    |
-| DELETE | `/api/deadlines/{id}`        | Delete deadline    |
+---
 
-### Notes
-| Method | Endpoint                     | Description        |
-|--------|------------------------------|--------------------|
-| GET    | `/api/notes`                 | List notes         |
-| POST   | `/api/notes`                 | Create note        |
-| GET    | `/api/notes/{id}`            | Get note           |
-| PATCH  | `/api/notes/{id}`            | Update note        |
-| DELETE | `/api/notes/{id}`            | Delete note        |
+## 🔌 API Overview
 
-### Planner
-| Method | Endpoint                     | Description             |
-|--------|------------------------------|-------------------------|
-| GET    | `/api/planner`               | List planner entries    |
-| POST   | `/api/planner`               | Create entry            |
-| GET    | `/api/planner/{id}`          | Get entry               |
-| PATCH  | `/api/planner/{id}`          | Update entry            |
-| DELETE | `/api/planner/{id}`          | Delete entry            |
+Interactive docs are at **http://localhost:8000/docs**. All endpoints live under `/api/` and are proxied through the frontend, so the browser can call `/api/...` directly.
 
-### Journal
-| Method | Endpoint                     | Description             |
-|--------|------------------------------|-------------------------|
-| GET    | `/api/journal`               | List journal entries    |
-| POST   | `/api/journal`               | Create entry            |
-| GET    | `/api/journal/{id}`          | Get entry               |
-| PATCH  | `/api/journal/{id}`          | Update entry            |
-| DELETE | `/api/journal/{id}`          | Delete entry            |
+| Area        | Endpoints |
+|-------------|-----------|
+| Deadlines   | `GET/POST /api/deadlines`, `GET/PATCH/DELETE /api/deadlines/{id}` |
+| Planner     | `GET/POST /api/planner`, `GET/PATCH/DELETE /api/planner/{id}` |
+| Journal     | `GET/POST /api/journal`, `GET/PATCH/DELETE /api/journal/{id}` |
+| Sports      | `GET/POST /api/sports`, `GET/PATCH/DELETE /api/sports/{id}`, `GET /api/sports/date/{date}` |
+| Habits      | `GET/POST /api/habits`, `PATCH/DELETE /api/habits/{id}` |
+| Whiteboards | `GET/POST /api/whiteboards`, `GET/PUT/DELETE /api/whiteboards/{id}` |
+| Tables      | `GET/POST /api/tables`, `GET/PUT/DELETE /api/tables/{id}` |
+| Finance     | `GET/POST /api/finance/cards`, `GET/POST /api/finance/transactions`, ... |
+| Life Tree   | `GET/POST /api/life-tree`, `PATCH/DELETE /api/life-tree/{id}` |
+| Connections | `GET/POST /api/connections`, search, positions, ... |
+| Reports     | `GET /api/report?start_date=&end_date=` |
+| Summary     | `GET /api/daily-summary?date=`, `GET /api/daily-summary/range?start_date=&end_date=` |
+| Search      | `GET /api/search?q=...` |
+| Notifications | `GET /api/notifications`, `POST /api/notifications/{id}/read` |
+| Backup      | `GET /api/backup/export`, `POST /api/backup/import` |
+| Health      | `GET /api/health` |
 
-### Boards
-| Method | Endpoint                                                    | Description           |
-|--------|-------------------------------------------------------------|-----------------------|
-| GET    | `/api/boards`                                               | List boards           |
-| POST   | `/api/boards`                                               | Create board          |
-| GET    | `/api/boards/{id}`                                          | Get board             |
-| DELETE | `/api/boards/{id}`                                          | Delete board          |
-| POST   | `/api/boards/{id}/columns`                                  | Add column            |
-| DELETE | `/api/boards/{id}/columns/{col_id}`                         | Delete column         |
-| POST   | `/api/boards/{id}/columns/{col_id}/cards`                   | Add card              |
-| PATCH  | `/api/boards/{id}/columns/{col_id}/cards/{card_id}`         | Update card           |
-| DELETE | `/api/boards/{id}/columns/{col_id}/cards/{card_id}`         | Delete card           |
-| POST   | `/api/boards/{id}/columns/{from}/move/{card_id}/to/{to}`    | Move card between cols|
+---
 
-### Other
-| Method | Endpoint                          | Description             |
-|--------|-----------------------------------|-------------------------|
-| GET    | `/api/search?q=...`               | Global search           |
-| GET    | `/api/notifications`              | Notification history    |
-| POST   | `/api/notifications/{id}/read`    | Mark notification read  |
-| GET    | `/api/backup/export`              | Export all data as JSON |
-| POST   | `/api/backup/import`              | Import data from JSON   |
-| GET    | `/api/health`                     | Health check            |
+## 🔔 Notification Engine
 
-## 🔔 Notification Engine Details
+An APScheduler loop inside the backend checks deadlines every 15 minutes:
 
-The scheduler runs an APScheduler `AsyncIOScheduler` inside the FastAPI process.
+- **3 days before** · **2 days before** · **1 day before** · **1 hour before** — notification
+- **Overdue** — critical notification
+- **Startup catch-up** — if the machine was off during a notification window, all missed alerts fire on the next start
+- Every notification is written to `notification_history.json` and shown in the app's bell
 
-1. **Periodic check** — Every 15 minutes, all deadlines are evaluated
-2. **Time-aware** — Compares current UTC time against deadline `due_date`
-3. **Flag-based** — Each reminder stage (3d, 2d, 1d, 1h) has a boolean flag to prevent duplicates
-4. **Startup catch-up** — On application start, all deadlines are scanned and any missed notification windows trigger immediately
-5. **Desktop integration** — Uses `plyer` (which calls `notify-send` on Linux) for native notifications
-6. **History** — All sent notifications are logged to `notification_history.json`
+The backend stores every alert in-app (the bell in the header), and the frontend can also fire **native OS notifications** through the browser's Notification API — works the same on Windows, macOS and Linux. Enable it in **Settings → System Info → Notification Engine** (a browser permission prompt appears).
 
-### Missed Notification Handling
+> Native desktop `notify-send`/D-Bus notifications are still tried on Linux where available, and always fall back gracefully to the in-app bell.
 
-If your computer is off when a notification was supposed to fire:
+---
 
-```
-System Off ─── 3d before deadline: missed
-              ─── 2d before deadline: missed
-              ─── 1d before deadline: missed
-System On  ─── Startup: catches up and shows ALL missed notifications
-              ─── 1h before deadline: fires normally
-```
+## 🛠 Development (without Docker)
 
-## 🛠 Development
+**Backend**
 
-### Build without Docker
-
-**Backend:**
 ```bash
 cd backend
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-**Frontend:**
+**Frontend**
+
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev          # serves on port 80 (as configured) — add --port 5173 if that port is busy
 ```
 
-### Adding New Features
+> The Vite dev server proxies `/api` to the backend at `:8000`, so you can use the frontend against a locally-running backend.
 
-1. **New data model** — Add model in `backend/app/models/`, create route in `routes/`, add collection to `storage.py`
-2. **New frontend page** — Create page in `frontend/src/pages/`, add to sidebar in `Sidebar.tsx`, add to router in `App.tsx`
-3. **New notification type** — Extend `notification_scheduler.py` with new check conditions
+**Useful targets while developing**
 
-## 📦 Tech Stack
+```bash
+make dev             # containerized frontend with hot reload
+make logs-backend    # follow backend logs
+make rebuild         # rebuild images and restart
+```
 
-| Layer     | Technology                          |
-|-----------|-------------------------------------|
-| Frontend  | React 18, TypeScript, Vite, TailwindCSS, Framer Motion, Zustand |
-| Backend   | Python 3.12, FastAPI, APScheduler, plyer |
-| Storage   | JSON file-based with atomic writes  |
-| Container | Docker, Docker Compose, nginx       |
+---
+
+## ❓ Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `docker: permission denied` | Log out/in after `make install`, or run `sudo usermod -aG docker $USER && newgrp docker` |
+| Port already in use | `make doctor` shows which ports are busy; edit the port mapping in `docker-compose.yml` or free the port |
+| No browser notifications | Open **Settings → System Info → Notification Engine** and toggle it on (allows the site's notification permission) |
+| No native desktop notification (Linux) | Make sure `libnotify-bin` is installed and you're in a graphical session (`echo $DISPLAY`). The in-app bell + browser notifications still work regardless |
+| Need to start fresh | `make clean` removes containers (your `./data/` is kept) |
+| Backend docs not loading | Check `make ps` — the backend must be `healthy` before the frontend starts |
+
+---
 
 ## 📄 License
 
-MIT
+MIT — use it, fork it, enjoy it. ✦

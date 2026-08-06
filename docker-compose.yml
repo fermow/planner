@@ -9,19 +9,11 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - celestial_data:/data
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /run/user/1000:/run/user/1000:rw
+      - ./data:/data
     environment:
       - DATA_DIR=/data
-      - TZ=Asia/Tehran
-      - LOG_LEVEL=INFO
-      - DISPLAY=${DISPLAY:-:0}
-      - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-      - HOME=/root
-      - XDG_RUNTIME_DIR=/run/user/1000
-      - OLLAMA_HOST=http://192.168.40.121:11434
-      - OLLAMA_KEEP_ALIVE=0
+      - TZ=${TZ:-UTC}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     ports:
       - "8000:8000"
     healthcheck:
@@ -67,14 +59,6 @@ services:
       - backend
     networks:
       - celestial-net
-
-volumes:
-  celestial_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/mobinabedian/celestial-desk-data
-      o: bind
 
 networks:
   celestial-net:

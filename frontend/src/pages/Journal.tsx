@@ -4,14 +4,14 @@ import { BookOpen, Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import type { JournalEntry } from '../types';
 import { useTranslation } from '../i18n/t';
-import { formatDateLong } from '../utils/formatTime';
+import { formatDateLong, toLocalDateStr } from '../utils/formatTime';
 
 const MOODS = ['neutral', 'happy', 'motivated', 'tired', 'stressed', 'calm', 'sad', 'excited'];
 
 export default function JournalPage() {
   const { t } = useTranslation();
   const { journal, fetchJournal, addJournalEntry, editJournalEntry, removeJournalEntry } = useStore();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(toLocalDateStr(new Date()));
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<JournalEntry | null>(null);
   const [form, setForm] = useState({ what_i_did: '', plans: '', reflection: '', mood: 'neutral' });
@@ -20,7 +20,7 @@ export default function JournalPage() {
     fetchJournal();
   }, [fetchJournal]);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = toLocalDateStr(new Date());
   const currentEntry = journal.find((e) => e.date === selectedDate);
 
   const openForm = (entry?: JournalEntry) => {
@@ -47,7 +47,7 @@ export default function JournalPage() {
   const changeDay = (delta: number) => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() + delta);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    setSelectedDate(toLocalDateStr(d));
   };
 
   const moodColor = (m: string) => {

@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, ContactShadows, useCursor } from '@react-three/drei';
+import { OrbitControls, ContactShadows, useCursor, Html } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
@@ -28,6 +28,8 @@ interface Palette {
   ground: RGB;
   text: string;
   textDim: string;
+  chipBg: string;
+  chipBorder: string;
 }
 
 const PALETTES: Record<'default' | 'kawaii', Palette> = {
@@ -43,6 +45,8 @@ const PALETTES: Record<'default' | 'kawaii', Palette> = {
     ground: [10, 10, 26],
     text: '#dbe7ff',
     textDim: 'rgba(219,231,255,0.72)',
+    chipBg: 'rgba(8,10,30,0.55)',
+    chipBorder: 'rgba(255,255,255,0.14)',
   },
   kawaii: {
     cyan: [255, 45, 85],
@@ -56,6 +60,8 @@ const PALETTES: Record<'default' | 'kawaii', Palette> = {
     ground: [255, 226, 236],
     text: '#3d0a22',
     textDim: 'rgba(61,10,34,0.66)',
+    chipBg: 'rgba(255,255,255,0.6)',
+    chipBorder: 'rgba(61,10,34,0.14)',
   },
 };
 
@@ -132,6 +138,8 @@ interface Branch3D {
 interface Leaf3D {
   id: string;
   branchId: string;
+  title: string;
+  done: boolean;
   pos: THREE.Vector3;
   color: RGB;
 }
@@ -142,6 +150,15 @@ interface Foliage3D {
   color: RGB;
 }
 
+interface WillowStrand {
+  pts: THREE.Vector3[];
+}
+
+interface WillowData {
+  strands: WillowStrand[];
+  canopy: Foliage3D[];
+}
+
 interface Tree3D {
   trunkHeight: number;
   trunkBaseR: number;
@@ -149,7 +166,7 @@ interface Tree3D {
   trunkColor: THREE.Color;
   branches: Branch3D[];
   leaves: Leaf3D[];
-  foliage: Foliage3D[];
+  willow: WillowData;
   particles: THREE.Vector3[];
 }
 
@@ -163,7 +180,7 @@ function buildTreeData(tree: LifeTreeEntry, theme: 'default' | 'kawaii'): Tree3D
   const trunkHeight = 2.3;
   const trunkBaseR = 0.1;
   const trunkTopR = 0.05;
-  const trunkColor = toColor(theme === 'kawaii' ? p.trunkA : [70, 50, 26]);
+  const trunkColor = toColor([146, 84, 50]);
 
   const branches: Branch3D[] = tree.branches.map((b, i) => {
     const tt = n <= 1 ? 0.5 : i / (n - 1);
@@ -212,22 +229,46 @@ function buildTreeData(tree: LifeTreeEntry, theme: 'default' | 'kawaii'): Tree3D
   });
 
   const leaves: Leaf3D[] = branches.flatMap((br) =>
-    br.goals.map((g) => ({ id: g.id, branchId: g.branchId, pos: g.pos, color: progressColor(g.done ? 1 : 0, p) })),
+    br.goals.map((g) => ({
+      id: g.id,
+      branchId: g.branchId,
+      title: g.title,
+      done: g.done,
+      pos: g.pos,
+      color: progressColor(g.done ? 1 : 0, p),
+    })),
   );
 
-  const foliage: Foliage3D[] = branches.flatMap((br) =>
-    Array.from({ length: 4 }, (_, k) => {
-      const f = 0.8 + k * 0.06 + (rand() - 0.5) * 0.04;
-      const base = br.curve.length === 3 ? br.curve[0] : br.tip;
-      const dir = br.tip.clone().sub(base).normalize();
-      const anchor = br.tip.clone().add(dir.multiplyScalar((k - 1.5) * 0.22));
-      return {
-        pos: anchor.add(new THREE.Vector3((rand() - 0.5) * 0.2, (rand() - 0.5) * 0.16, (rand() - 0.5) * 0.2)),
-        r: 0.16 + rand() * 0.12,
-        color: progressColor(br.ratio, p),
-      };
-    }),
-  );
+  // Weeping-willow crown (decorative, separate from the life nodes)
+  const wR = mulberry32((seed ^ 0x5f3759df) >>> 0);
+  const willowaGreen: RGB = [117, 178, 96];
+  const apexY = trunkHeight * 0.92;
+  const strands: WillowStrand[] = [];
+  for (let i = 0; i < 26; i++) {
+    const az = (i / 26) * Math.PI * 2 + wR() * 0.3;
+    const cos = Math.cos(az);
+    const sin = Math.sin(az);
+    const anchorR = 0.05 + wR() * 0.2;
+    const outR = 0.45 + wR() * 0.85;
+    const drop = 0.4 + wR() * 0.7;
+    const lift = 0.05 + wR() * 0.18;
+    const p0 = new THREE.Vector3(cos * anchorR, apexY - lift, sin * anchorR);
+    const p1 = new THREE.Vector3(cos * (anchorR + outR * 0.3), apexY + 0.1, sin * (anchorR + outR * 0.3));
+    const p2 = new THREE.Vector3(cos * (anchorR + outR * 0.72), apexY - drop * 0.28, sin * (anchorR + outR * 0.72));
+    const p3 = new THREE.Vector3(cos * (anchorR + outR), apexY - drop, sin * (anchorR + outR));
+    strands.push({ pts: [p0, p1, p2, p3] });
+  }
+  const canopy: Foliage3D[] = [];
+  for (let i = 0; i < 24; i++) {
+    canopy.push({
+      pos: new THREE.Vector3((wR() - 0.5) * 0.75, apexY - 0.08 + wR() * 0.42, (wR() - 0.5) * 0.75),
+      r: 0.14 + wR() * 0.18,
+      color: willowaGreen,
+    });
+  }
+  strands.forEach((s) => {
+    canopy.push({ pos: s.pts[3].clone(), r: 0.05 + wR() * 0.05, color: willowaGreen });
+  });
 
   const particles: THREE.Vector3[] = Array.from({ length: 90 }, () => {
     const a = rand() * Math.PI * 2;
@@ -235,7 +276,7 @@ function buildTreeData(tree: LifeTreeEntry, theme: 'default' | 'kawaii'): Tree3D
     return new THREE.Vector3(Math.cos(a) * r, rand() * 2.6, Math.sin(a) * r);
   });
 
-  return { trunkHeight, trunkBaseR, trunkTopR, trunkColor, branches, leaves, foliage, particles };
+  return { trunkHeight, trunkBaseR, trunkTopR, trunkColor, branches, leaves, willow: { strands, canopy }, particles };
 }
 
 interface TipInfo {
@@ -312,17 +353,13 @@ function CategoryOrb({
           onToggle(branch.id);
         }}
       >
-        <sphereGeometry args={[0.058, 20, 20]} />
+        <sphereGeometry args={[0.075, 20, 20]} />
         <meshStandardMaterial
-          color={branch.color}
-          emissive={branch.color}
-          emissiveIntensity={active ? 1.1 : 0.5}
+          color="#22c55e"
+          emissive="#22c55e"
+          emissiveIntensity={active ? 1.1 : 0.45}
           roughness={0.3}
         />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[0.13, 16, 16]} />
-        <meshBasicMaterial color={branch.color} transparent opacity={active ? 0.28 : 0.12} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -402,7 +439,20 @@ function Leaves({
   );
 }
 
-function Foliage({ items, growth }: { items: Foliage3D[]; growth: number }) {
+function WillowStrand({ strand, growth }: { strand: WillowStrand; growth: number }) {
+  const geometry = useMemo(() => {
+    const curve = new THREE.CatmullRomCurve3(strand.pts, false, 'catmullrom', 0.5);
+    return new THREE.TubeGeometry(curve, 18, 0.007, 5, false);
+  }, [strand]);
+  if (growth < 0.5) return null;
+  return (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial color="#6f9a52" roughness={0.9} metalness={0} />
+    </mesh>
+  );
+}
+
+function Canopy({ blobs, growth }: { blobs: Foliage3D[]; growth: number }) {
   const ref = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const c = useMemo(() => new THREE.Color(), []);
@@ -410,18 +460,18 @@ function Foliage({ items, growth }: { items: Foliage3D[]; growth: number }) {
   useEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
-    items.forEach((it, i) => {
+    blobs.forEach((it, i) => {
       c.setRGB(it.color[0] / 255, it.color[1] / 255, it.color[2] / 255, THREE.SRGBColorSpace);
       mesh.setColorAt(i, c);
     });
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [items, c]);
+  }, [blobs, c]);
 
   useFrame(() => {
     const mesh = ref.current;
     if (!mesh) return;
-    items.forEach((it, i) => {
-      const s = easeOutCubic(clamp((growth - 0.55 - i * 0.02) / 0.4, 0, 1));
+    blobs.forEach((it, i) => {
+      const s = easeOutCubic(clamp((growth - 0.45 - i * 0.05) / 0.4, 0, 1));
       dummy.position.copy(it.pos);
       dummy.scale.setScalar(Math.max(0.0001, s * it.r));
       dummy.updateMatrix();
@@ -430,12 +480,78 @@ function Foliage({ items, growth }: { items: Foliage3D[]; growth: number }) {
     mesh.instanceMatrix.needsUpdate = true;
   });
 
-  if (items.length === 0) return null;
+  if (blobs.length === 0) return null;
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, items.length]} frustumCulled={false}>
-      <icosahedronGeometry args={[1, 1]} />
-      <meshBasicMaterial transparent opacity={0.16} depthWrite={false} />
+    <instancedMesh ref={ref} args={[undefined, undefined, blobs.length]} frustumCulled={false}>
+      <icosahedronGeometry args={[1, 2]} />
+      <meshStandardMaterial transparent opacity={0.34} depthWrite={false} />
     </instancedMesh>
+  );
+}
+
+function NodeLabels({
+  branches,
+  leaves,
+  growth,
+}: {
+  branches: Branch3D[];
+  leaves: Leaf3D[];
+  growth: number;
+}) {
+  const branchOpacity = clamp((growth - 0.45) / 0.4, 0, 1);
+  const goalOpacity = clamp((growth - 0.55) / 0.4, 0, 1);
+  return (
+    <>
+      {branches.map((br) => (
+        <Html
+          key={`bl:${br.id}`}
+          position={[br.tip.x, br.tip.y + 0.24, br.tip.z]}
+          center
+          distanceFactor={6.5}
+          zIndexRange={[5, 0]}
+          style={{ pointerEvents: 'none', opacity: branchOpacity }}
+        >
+          <span
+            className="whitespace-nowrap rounded-full px-2 py-0.5 font-semibold"
+            style={{
+              fontSize: 11,
+              color: '#17324a',
+              background: 'rgba(255,255,255,0.78)',
+              border: '1px solid rgba(255,255,255,0.95)',
+              boxShadow: '0 1px 5px rgba(20,70,50,0.22)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              maxWidth: 180,
+            }}
+          >
+            {br.title}
+          </span>
+        </Html>
+      ))}
+      {leaves.map((l) => (
+        <Html
+          key={`gl:${l.id}`}
+          position={[l.pos.x, l.pos.y - 0.09, l.pos.z]}
+          center
+          distanceFactor={6.5}
+          zIndexRange={[5, 0]}
+          style={{ pointerEvents: 'none', opacity: goalOpacity }}
+        >
+          <span
+            className="whitespace-nowrap font-semibold"
+            style={{
+              fontSize: 10,
+              color: l.done ? '#1d7a3f' : '#3c6b7a',
+              textShadow: '0 0 3px rgba(255,255,255,0.7)',
+              maxWidth: 140,
+              display: 'inline-block',
+            }}
+          >
+            {l.title}
+          </span>
+        </Html>
+      ))}
+    </>
   );
 }
 
@@ -453,41 +569,36 @@ function GlowParticles({ points }: { points: THREE.Vector3[] }) {
     <points ref={ref} geometry={geometry}>
       <pointsMaterial
         size={0.02}
-        color="#9ff7ef"
+        color="#ffffff"
         transparent
-        opacity={0.5}
+        opacity={0.3}
         sizeAttenuation
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
       />
     </points>
   );
 }
 
-function Rig({ theme }: { theme: 'default' | 'kawaii' }) {
-  const p = PALETTES[theme];
-  const fogColor = theme === 'kawaii' ? '#ffd4e0' : '#0a0a1a';
+function Rig() {
   return (
     <>
-      <fog attach="fog" args={[fogColor, 5.5, 13]} />
-      <ambientLight intensity={0.5} />
-      <hemisphereLight args={[toColor(p.sky), toColor(p.ground), 0.4]} />
-      <directionalLight position={[4, 6, 3]} intensity={1.25} color="#ffffff" />
-      <pointLight position={[-3, 2.4, -3]} intensity={0.7} color={toColor(p.gold)} />
-      <pointLight position={[3, 1.2, 4]} intensity={0.4} color={toColor(p.cyan)} />
+      <fog attach="fog" args={['#c9ecfb', 7, 14]} />
+      <ambientLight intensity={0.65} />
+      <hemisphereLight args={[toColor([135, 206, 235]), toColor([154, 224, 139]), 0.55]} />
+      <directionalLight position={[4, 6, 3]} intensity={1.15} color="#ffffff" />
+      <pointLight position={[-3, 2.6, -3]} intensity={0.5} color={toColor([240, 192, 64])} />
+      <pointLight position={[3, 1.4, 4]} intensity={0.35} color={toColor([64, 224, 208])} />
     </>
   );
 }
 
 function Scene3D({
   data,
-  theme,
   onHover,
   onToggleBranch,
   onToggleGoal,
 }: {
   data: Tree3D;
-  theme: 'default' | 'kawaii';
   onHover: (info: TipInfo | null) => void;
   onToggleBranch: (branchId: string) => void;
   onToggleGoal: (branchId: string, goalId: string) => void;
@@ -544,9 +655,12 @@ function Scene3D({
 
   return (
     <>
-      <Rig theme={theme} />
+      <Rig />
       <Trunk data={data} growth={growth} />
-      <Foliage items={data.foliage} growth={growth} />
+      {data.willow.strands.map((s, i) => (
+        <WillowStrand key={i} strand={s} growth={growth} />
+      ))}
+      <Canopy blobs={data.willow.canopy} growth={growth} />
       {data.branches.map((br, i) => (
         <BranchMesh key={br.id} branch={br} growth={growth} index={i} />
       ))}
@@ -566,6 +680,7 @@ function Scene3D({
         onHoverOut={() => onHover(null)}
         onToggle={(leaf) => onToggleGoal(leaf.branchId, leaf.id)}
       />
+      <NodeLabels branches={data.branches} leaves={data.leaves} growth={growth} />
       <GlowParticles points={data.particles} />
       <ContactShadows position={[0, 0.005, 0]} opacity={0.35} scale={8} blur={2.4} far={3.2} color="#000000" />
       <OrbitControls
@@ -614,18 +729,23 @@ export default function LifeTree3D({
   const above = (hover?.y ?? 0) > 46;
 
   return (
-    <div className="relative h-[400px] md:h-[540px] overflow-hidden rounded-xl">
+    <div className="relative h-[540px] md:h-[720px] overflow-hidden rounded-xl">
+      {/* Sky → grass backdrop */}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(180deg, #6cb8ef 0%, #a9dcf7 38%, #ddf4d8 66%, #a8e08d 100%)' }}
+      />
+
       {gl ? (
         <Canvas
           dpr={[1, 2]}
-          camera={{ position: [3.1, 2.5, 4.7], fov: 40 }}
+          camera={{ position: [3.6, 2.8, 5.4], fov: 42 }}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
         >
           <Suspense fallback={null}>
             <Scene3D
               data={data}
-              theme={theme}
               onHover={setHover}
               onToggleBranch={onToggleBranch}
               onToggleGoal={onToggleGoal}
@@ -634,15 +754,15 @@ export default function LifeTree3D({
         </Canvas>
       ) : (
         <div className="h-full flex items-center justify-center">
-          <p className="text-xs text-navy-200/60 px-6 text-center">
+          <p className="text-xs text-slate-700/70 px-6 text-center">
             WebGL is not supported by this browser, so the 3D Life Tree can't render. The branch cards below still work.
           </p>
         </div>
       )}
 
-      {/* Gradient vignette over the canvas for the glassmorphism feel */}
-      <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/5" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
+      {/* Soft vignette over the scene */}
+      <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-black/5" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/5 to-transparent" />
 
       {/* Hover card */}
       <AnimatePresence>
@@ -661,14 +781,14 @@ export default function LifeTree3D({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ duration: 0.16 }}
-              className="glass-card w-52 max-w-[60vw] p-3"
+              className="glass-card w-72 max-w-[78vw] p-3.5"
             >
               <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: PALETTES[theme].textDim }}>
+                <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: PALETTES[theme].textDim }}>
                   {hover.childCount > 0 ? t('lifeTree.branch') : t('lifeTree.goal')}
                 </span>
                 <span
-                  className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+                  className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
                   style={{
                     color: hover.done ? '#ffffff' : PALETTES[theme].text,
                     background: hover.done ? `rgba(74,222,128,0.85)` : `rgba(64,224,208,0.16)`,
@@ -677,23 +797,23 @@ export default function LifeTree3D({
                   {hover.done ? t('lifeTree.complete') : t('lifeTree.inProgress')}
                 </span>
               </div>
-              <p className="text-xs font-semibold leading-snug" style={{ color: PALETTES[theme].text }}>
+              <p className="text-sm font-semibold leading-snug" style={{ color: PALETTES[theme].text }}>
                 {hover.title || '...'}
               </p>
               {hover.description && (
-                <p className="text-[11px] leading-snug mt-0.5 line-clamp-2" style={{ color: PALETTES[theme].textDim }}>
+                <p className="text-xs leading-snug mt-1 line-clamp-3" style={{ color: PALETTES[theme].textDim }}>
                   {hover.description}
                 </p>
               )}
               {hover.childCount > 0 && (
-                <div className="mt-2">
-                  <div className="flex items-center justify-between text-[9px] mb-1" style={{ color: PALETTES[theme].textDim }}>
+                <div className="mt-2.5">
+                  <div className="flex items-center justify-between text-[10px] mb-1" style={{ color: PALETTES[theme].textDim }}>
                     <span>{hover.childCount} {t('lifeTree.goals')}</span>
                     <span style={{ color: `rgb(${progressColor(hover.ratio, PALETTES[theme]).join(',')})` }}>
                       {Math.round(hover.ratio * 100)}%
                     </span>
                   </div>
-                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(64,224,208,0.14)' }}>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(64,224,208,0.14)' }}>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.round(hover.ratio * 100)}%` }}

@@ -1,10 +1,34 @@
 import { create } from 'zustand';
-import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, SportEntry, FinanceCard, FinanceTransaction, LifeTreeEntry, Connection } from '../types';
+import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, SportEntry, FinanceCard, FinanceTransaction, LifeTreeEntry, Connection, Habit } from '../types';
 import { api } from '../api/client';
 import { t } from '../i18n/t';
 
 const LS_PAGE_KEY = 'celestial-current-page';
 const LS_THEME_KEY = 'celestial-theme';
+const LS_RECENT_CONN_SEARCHES = 'connection-recent-searches';
+const MAX_RECENT = 8;
+const LS_BROWSER_NOTIF_KEY = 'celestial-browser-notifications';
+
+function loadBrowserNotifEnabled(): boolean {
+  try {
+    return localStorage.getItem(LS_BROWSER_NOTIF_KEY) === '1';
+  } catch {}
+  return false;
+}
+
+function loadRecentSearches(): string[] {
+  try {
+    const saved = localStorage.getItem(LS_RECENT_CONN_SEARCHES);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return [];
+}
+
+function saveRecentSearches(searches: string[]) {
+  try {
+    localStorage.setItem(LS_RECENT_CONN_SEARCHES, JSON.stringify(searches));
+  } catch {}
+}
 
 function loadPage(): Page {
   try {
@@ -54,6 +78,7 @@ interface AppState {
   whiteboards: Whiteboard[];
   tables: TableData[];
   sports: SportEntry[];
+  habits: Habit[];
   financeCards: FinanceCard[];
   financeTransactions: FinanceTransaction[];
   lifeTree: LifeTreeEntry[];
@@ -109,12 +134,22 @@ interface AppState {
 
   // Notification
   dismissNotification: (id: string) => Promise<void>;
+  browserNotifEnabled: boolean;
+  setBrowserNotifEnabled: (enabled: boolean) => void;
+  enableBrowserNotif: () => Promise<boolean>;
+  disableBrowserNotif: () => void;
 
   // Sport actions
   fetchSports: () => Promise<void>;
   addSportEntry: (data: any) => Promise<void>;
   editSportEntry: (id: string, data: any) => Promise<void>;
   removeSportEntry: (id: string) => Promise<void>;
+
+  // Habit actions
+  fetchHabits: () => Promise<void>;
+  addHabit: (data: any) => Promise<void>;
+  editHabit: (id: string, data: any) => Promise<void>;
+  removeHabit: (id: string) => Promise<void>;
 
   // Finance actions
   fetchFinanceCards: () => Promise<void>;
@@ -137,6 +172,22 @@ interface AppState {
   addConnection: (data: any) => Promise<void>;
   editConnection: (id: string, data: any) => Promise<void>;
   removeConnection: (id: string) => Promise<void>;
+  searchConnections: (q: string) => Promise<void>;
+  updateConnectionPositions: (positions: { id: string; x: number; y: number }[]) => Promise<void>;
+
+   // Connection search state
+  connectionSearchResults: any[];
+  connectionSearchLoading: boolean;
+  showConnectionSearch: boolean;
+  showConnectionCreate: boolean;
+  connectionSearchQuery: string;
+  setConnectionSearchQuery: (q: string) => void;
+  setShowConnectionSearch: (v: boolean) => void;
+  setShowConnectionCreate: (v: boolean) => void;
+  toggleConnectionSearch: () => void;
+  addRecentConnectionSearch: (q: string) => void;
+  clearRecentConnectionSearches: () => void;
+  recentConnectionSearches: string[];
 
   // Bulk fetch
   fetchAll: () => Promise<void>;
@@ -170,16 +221,41 @@ export const useStore = create<AppState>((set, get) => ({
   whiteboards: [],
   tables: [],
   sports: [],
+  habits: [],
   financeCards: [],
   financeTransactions: [],
   lifeTree: [],
   connections: [],
   notifications: [],
+  browserNotifEnabled: loadBrowserNotifEnabled(),
   loading: false,
   error: null,
   searchQuery: '',
   searchResults: null,
   showSearch: false,
+
+  connectionSearchResults: [],
+  connectionSearchLoading: false,
+  showConnectionSearch: false,
+  showConnectionCreate: false,
+  connectionSearchQuery: '',
+  recentConnectionSearches: loadRecentSearches(),
+   setConnectionSearchQuery: (q) => set({ connectionSearchQuery: q }),
+  setShowConnectionSearch: (v) => set({ showConnectionSearch: v }),
+  setShowConnectionCreate: (v) => set({ showConnectionCreate: v }),
+  toggleConnectionSearch: () => set((s) => ({ showConnectionSearch: !s.showConnectionSearch })),
+  addRecentConnectionSearch: (q) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    const existing = get().recentConnectionSearches;
+    const updated = [trimmed, ...existing.filter((s) => s !== trimmed)].slice(0, MAX_RECENT);
+    saveRecentSearches(updated);
+    set({ recentConnectionSearches: updated });
+  },
+  clearRecentConnectionSearches: () => {
+    saveRecentSearches([]);
+    set({ recentConnectionSearches: [] });
+  },
 
   toast: null,
   showToast: (message, type = 'info') => {
@@ -353,6 +429,39 @@ export const useStore = create<AppState>((set, get) => ({
     await get().fetchNotifications();
   },
 
+  setBrowserNotifEnabled: (enabled) => {
+    try {
+      localStorage.setItem(LS_BROWSER_NOTIF_KEY, enabled ? '1' : '0');
+    } catch {}
+    set({ browserNotifEnabled: enabled });
+  },
+
+  enableBrowserNotif: async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      get().showToast('Browser notifications are not supported here', 'error');
+      return false;
+    }
+    let permission = Notification.permission;
+    if (permission === 'default') {
+      try {
+        permission = await Notification.requestPermission();
+      } catch {
+        permission = 'denied';
+      }
+    }
+    const ok = permission === 'granted';
+    get().setBrowserNotifEnabled(ok);
+    get().showToast(
+      ok ? 'Browser notifications enabled' : 'Notifications permission denied',
+      ok ? 'success' : 'error'
+    );
+    return ok;
+  },
+
+  disableBrowserNotif: () => {
+    get().setBrowserNotifEnabled(false);
+  },
+
   fetchSports: async () => {
     try {
       const data = await api.getSports();
@@ -378,6 +487,33 @@ export const useStore = create<AppState>((set, get) => ({
     await api.deleteSportEntry(id);
     await get().fetchSports();
     get().showToast(t('sports.entryRemoved'), 'success');
+  },
+
+  fetchHabits: async () => {
+    try {
+      const data = await api.getHabits();
+      set({ habits: data });
+    } catch (e: any) {
+      set({ error: e.message });
+    }
+  },
+
+  addHabit: async (data) => {
+    await api.createHabit(data);
+    await get().fetchHabits();
+    get().showToast(t('habits.saved'), 'success');
+  },
+
+  editHabit: async (id, data) => {
+    await api.updateHabit(id, data);
+    await get().fetchHabits();
+    get().showToast(t('habits.updated'), 'success');
+  },
+
+  removeHabit: async (id) => {
+    await api.deleteHabit(id);
+    await get().fetchHabits();
+    get().showToast(t('habits.deleted'), 'success');
   },
 
   fetchFinanceCards: async () => {
@@ -490,13 +626,38 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  removeConnection: async (id) => {
+   removeConnection: async (id) => {
     try {
       await api.deleteConnection(id);
       await get().fetchConnections();
       get().showToast(t('connections.removed'), 'success');
     } catch (e: any) {
       get().showToast(e?.message || 'Failed to delete connection', 'error');
+    }
+  },
+
+  searchConnections: async (q) => {
+    if (!q.trim()) {
+      set({ connectionSearchResults: [], connectionSearchLoading: false });
+      return;
+    }
+    set({ connectionSearchLoading: true });
+    try {
+      const data = await api.searchConnections(q);
+      set({ connectionSearchResults: data });
+    } catch (e: any) {
+      set({ connectionSearchResults: [], error: e.message });
+    } finally {
+      set({ connectionSearchLoading: false });
+    }
+  },
+
+  updateConnectionPositions: async (positions) => {
+    if (!positions.length) return;
+    try {
+      await api.updateConnectionPositions(positions);
+    } catch (e: any) {
+      console.error('Failed to save positions:', e);
     }
   },
 
@@ -510,6 +671,7 @@ export const useStore = create<AppState>((set, get) => ({
         get().fetchWhiteboards(),
         get().fetchTables(),
         get().fetchSports(),
+        get().fetchHabits(),
         get().fetchNotifications(),
         get().fetchFinanceCards(),
         get().fetchFinanceTransactions(),

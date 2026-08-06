@@ -2,7 +2,7 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-DATA_DIR="$HOME/celestial-desk-data"
+DATA_DIR="$PROJECT_DIR/data"
 
 echo "✦ Celestial Desk — Starting..."
 echo ""
@@ -10,6 +10,20 @@ echo ""
 # Ensure data directory exists
 mkdir -p "$DATA_DIR"
 echo "✓ Data directory ready: $DATA_DIR"
+
+# Auto-detect host timezone so the app runs on the user's local clock.
+# Only used when TZ is not already set (e.g. in .env).
+if [ -z "${TZ:-}" ]; then
+    if [ -f /etc/timezone ]; then
+        TZ="$(cat /etc/timezone)"
+    elif command -v timedatectl >/dev/null 2>&1; then
+        TZ="$(timedatectl show -p Timezone --value 2>/dev/null)"
+    fi
+    if [ -n "$TZ" ]; then
+        export TZ
+        echo "✓ Auto-detected timezone: $TZ"
+    fi
+fi
 
 # Check for docker compose
 if command -v docker-compose &> /dev/null; then
@@ -20,10 +34,6 @@ else
     echo "✗ Docker Compose not found. Please install Docker."
     exit 1
 fi
-
-# Export DBUS for desktop notifications
-export DISPLAY="${DISPLAY:-:0}"
-export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
 
 # Run boot setup if flag given
 if [ "$1" = "--enable-boot" ]; then

@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Clock, Target, TrendingUp, AlertTriangle,
-  Calendar, BarChart3, Dumbbell, BookOpen, Moon, Droplets, Egg, Shield,
-  Check, X,
+  Calendar, BarChart3, Shield, Check, X, Plus, Pencil, Trash2,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useClock } from '../hooks/useClock';
-import { formatCountdownPrecise } from '../utils/formatTime';
+import { formatCountdownPrecise, toLocalDateStr } from '../utils/formatTime';
 import type { Deadline } from '../types';
 import { TIME_BLOCK_TAGS, type TimeBlockTag } from '../types';
 import { useTranslation } from '../i18n/t';
@@ -79,9 +78,9 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
   const [customStart, setCustomStart] = useState(() => {
     const d = new Date(now);
     d.setDate(d.getDate() - 7);
-    return d.toISOString().split('T')[0];
+    return toLocalDateStr(d);
   });
-  const [customEnd, setCustomEnd] = useState(() => now.toISOString().split('T')[0]);
+  const [customEnd, setCustomEnd] = useState(() => toLocalDateStr(now));
 
   const range = useMemo(() => {
     const end = new Date(customEnd + 'T23:59:59');
@@ -108,7 +107,7 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
 
   const cursor = new Date(range.start);
   while (cursor <= range.end) {
-    const ds = cursor.toISOString().split('T')[0];
+    const ds = toLocalDateStr(cursor);
     labels.push(cursor.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
 
     const workHours = planner
@@ -186,73 +185,63 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
       {/* Chart */}
       <div ref={chartRef} className="relative h-44 md:h-52 px-1 border-b border-white/5 pb-2">
         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox={`0 0 ${data.length * 60} ${chartH}`}>
+          {/* Hover guide column */}
+          {hoverIndex !== null && (
+            <rect id="hoverGuide"
+              x={hoverIndex * 60 + 4} y={8} width={52} height={chartH - 12}
+              rx={10} fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.22)" strokeWidth={1} strokeDasharray="3,3" />
+          )}
+
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
             const y = chartH - frac * chartH;
             return (
               <line key={frac} x1={0} y1={y} x2={data.length * 60} y2={y}
-                stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+                stroke={frac === 0 ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)"}
+                strokeWidth={1} strokeDasharray={frac === 0 ? "none" : "2,5"} />
             );
           })}
 
-          {/* Area fill */}
-          {maxVal > 0 && (() => {
-            const pts = data.map((d, i) => {
-              const x = i * 60 + 30;
-              const y = chartH - ((d.work + d.sport) / maxVal) * chartH;
-              return `${x},${y}`;
-            });
-            const bottomLeft = `0,${chartH}`;
-            const bottomRight = `${(data.length - 1) * 60 + 30},${chartH}`;
-            const d = `M${pts.join(' L')} L${bottomRight} L${bottomLeft} Z`;
-            return (
-              <path d={d} fill="url(#areaGrad)" opacity={0.15} />
-            );
-          })()}
-
-          {/* Line */}
-          {maxVal > 0 && (() => {
-            const pts = data.map((d, i) => {
-              const x = i * 60 + 30;
-              const y = chartH - ((d.work + d.sport) / maxVal) * chartH;
-              return { x, y };
-            });
-            const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-            return (
-              <path d={d} fill="none" stroke="url(#lineGrad)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-            );
-          })()}
-
-          {/* Dots (hover target only) */}
+          {/* Bars — stacked: work (cyan) + sport (gold) */}
           {data.map((d, i) => {
-            const total = d.work + d.sport;
             const x = i * 60 + 30;
-            const y = chartH - (total / maxVal) * chartH;
-            const isHovered = hoverIndex === i;
+            const bw = 22;
+            const workH = (d.work / maxVal) * chartH;
+            const sportH = (d.sport / maxVal) * chartH;
+            const isHover = hoverIndex === i;
+            const glow = isHover ? 1 : 0;
             return (
               <g key={i}>
                 <rect x={x - 30} y={0} width={60} height={chartH} fill="transparent"
                   onMouseEnter={() => setHoverIndex(i)} onMouseLeave={() => setHoverIndex(null)} className="cursor-pointer" />
-                <circle cx={x} cy={y} r={isHovered ? 5 : 3.5}
-                  fill={isHovered ? "rgba(6,182,212,1)" : "rgba(6,182,212,0.9)"}
-                  stroke="#0c1a2e" strokeWidth={2}
-                  className="pointer-events-none transition-all duration-150" />
-                {isHovered && (
-                  <line x1={x} y1={0} x2={x} y2={chartH}
-                    stroke="rgba(6,182,212,0.2)" strokeWidth={1} strokeDasharray="4,4" className="pointer-events-none" />
+                <rect x={x - bw / 2} y={chartH - workH} width={bw} height={workH}
+                  rx={workH > 0 ? 3 : 0} fill="url(#workGrad)"
+                  style={{ transition: 'opacity .15s', opacity: 1 }}
+                  stroke={glow ? "rgba(34,211,238,0.9)" : "rgba(34,211,238,0.35)"} strokeWidth={1}>
+                  <animate attributeName="height" from="0" to={workH} dur="0.5s" fill="freeze" />
+                </rect>
+                {sportH > 0 && (
+                  <rect x={x - bw / 2} y={chartH - workH - sportH} width={bw} height={sportH}
+                    rx={4} fill="url(#sportGrad)" style={{ transition: 'opacity .250s' }}
+                    stroke={glow ? "rgba(250,204,21,0.9)" : "rgba(250,204,21,0.35)"} strokeWidth={1}>
+                    <animate attributeName="opacity" from="0" to="1" dur="0.5s" fill="freeze" />
+                  </rect>
                 )}
+                {/* top glow dot */}
+                <circle cx={x} cy={chartH - workH - sportH} r={glow ? 2.2 : 0}
+                  fill={sportH > 0 ? "#fde68a" : "#67e8f9"} className="pointer-events-none" style={{ transition: 'r .2s' }} />
               </g>
             );
           })}
 
           <defs>
-            <linearGradient id="areaGrad" x1={0} y1={0} x2={0} y2={1}>
-              <stop offset="0%" stopColor="rgba(6,182,212,0.3)" />
-              <stop offset="100%" stopColor="rgba(6,182,212,0)" />
+            <linearGradient id="workGrad" x1={0} y1={0} x2={0} y2={1}>
+              <stop offset="0%" stopColor="#67e8f9" />
+              <stop offset="100%" stopColor="#0891b2" />
             </linearGradient>
-            <linearGradient id="lineGrad" x1={0} y1={0} x2={1} y2={0}>
-              <stop offset="0%" stopColor="rgba(6,182,212,1)" />
-              <stop offset="100%" stopColor="rgba(250,204,21,0.8)" />
+            <linearGradient id="sportGrad" x1={0} y1={0} x2={0} y2={1}>
+              <stop offset="0%" stopColor="#fde68a" />
+              <stop offset="100%" stopColor="#f59e0b" />
             </linearGradient>
           </defs>
         </svg>
@@ -263,7 +252,7 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
           const total = d.work + d.sport;
           const ds = new Date(range.start);
           ds.setDate(ds.getDate() + i);
-          const dateStr = ds.toISOString().split('T')[0];
+          const dateStr = toLocalDateStr(ds);
           const blockCount = planner
             .filter((e: any) => e.date === dateStr)
             .reduce((s: number, e: any) => s + (e.time_blocks || []).filter((tb: any) => tb.done).length, 0);
@@ -280,20 +269,27 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
                 bottom: `${100 - pctY}%`,
                 marginTop: -8,
               }}>
-              <div className="bg-gray-900/95 backdrop-blur-sm text-white text-[11px] px-3.5 py-2.5 rounded-xl shadow-xl border border-white/10 min-w-[140px]">
-                <p className="font-semibold text-cosmic-cyan text-xs mb-1.5 pb-1.5 border-b border-white/5">{labels[i]}</p>
-                <div className="space-y-1">
+              <div className="bg-[#0b1422]/95 backdrop-blur-md text-white text-[11px] rounded-xl shadow-2xl border border-cyan-300/20 ring-1 ring-white/5 min-w-[160px] overflow-hidden">
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 bg-gradient-to-r from-cyan-500/15 to-yellow-400/10 border-b border-white/10">
+                  <span className="font-semibold text-cosmic-cyan text-xs uppercase tracking-wide">{labels[i]}</span>
+                  <span className="text-navy-300/50 text-[10px]">{total > 0 ? `${Math.round((total / totalHours) * 100)}% of period` : 'no hours'}</span>
+                </div>
+                <div className="px-3.5 py-2.5 space-y-1.5">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-navy-300/60">Total</span>
-                    <span className="text-white font-medium tabular-nums">{total.toFixed(1)}h</span>
+                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-cosmic-cyan" />Total</span>
+                    <span className="text-white font-semibold tabular-nums">{total.toFixed(1)}h</span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-navy-300/60">Work</span>
-                    <span className="text-cosmic-cyan tabular-nums">{d.work.toFixed(1)}h <span className="text-navy-400/60">· {blockCount}</span></span>
+                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-sky-400" />Work</span>
+                    <span className="text-cosmic-cyan tabular-nums font-medium">{d.work.toFixed(1)}h <span className="text-navy-400/60">· {blockCount}</span></span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-navy-300/60">Sport</span>
-                    <span className="text-cosmic-gold tabular-nums">{d.sport.toFixed(1)}h <span className="text-navy-400/60">· {sessionCount}</span></span>
+                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-yellow-400" />Sport</span>
+                    <span className="text-cosmic-gold tabular-nums font-medium">{d.sport.toFixed(1)}h <span className="text-navy-400/60">· {sessionCount}</span></span>
+                  </div>
+                  <div className="mt-1.5 flex h-1.5 w-full rounded-full overflow-hidden bg-white/5">
+                    <div className="h-full bg-gradient-to-r from-sky-400 to-cyan-500" style={{ width: `${total > 0 ? (d.work / total) * 100 : 0}%` }} />
+                    <div className="h-full bg-gradient-to-r from-yellow-400 to-amber-500" style={{ width: `${total > 0 ? (d.sport / total) * 100 : 0}%` }} />
                   </div>
                 </div>
               </div>
@@ -348,108 +344,149 @@ function SummarySection({ title, icon, color, children }: { title: string; icon:
 
 // ─── Daily Habits ───
 
-interface Habit {
-  id: string;
-  icon: React.ReactNode;
-  title: string;
-  target: string;
-  check: (planner: any[], sports: any[]) => boolean;
-}
-
-const DAILY_HABITS: Habit[] = [
-  {
-    id: 'workout',
-    icon: <Dumbbell size={16} />,
-    title: '1h Workout & Meditation',
-    target: 'Daily',
-    check: (planner) => {
-      const today = new Date().toISOString().split('T')[0];
-      return planner.some(e => e.date === today && (e.time_blocks || []).some((tb: any) => tb.tag === 'workout' && tb.done));
-    },
-  },
-  {
-    id: 'language',
-    icon: <BookOpen size={16} />,
-    title: '1.5h English Study',
-    target: 'Daily',
-    check: (planner) => {
-      const today = new Date().toISOString().split('T')[0];
-      return planner.some(e => e.date === today && (e.time_blocks || []).some((tb: any) => tb.tag === 'language' && tb.done));
-    },
-  },
-  {
-    id: 'brush',
-    icon: <Moon size={16} />,
-    title: 'Night Brushing',
-    target: 'Daily',
-    check: (planner) => {
-      const today = new Date().toISOString().split('T')[0];
-      return planner.some(e => e.date === today && (e.time_blocks || []).some((tb: any) => tb.title.toLowerCase().includes('brush') && tb.done));
-    },
-  },
-  {
-    id: 'shower',
-    icon: <Droplets size={16} />,
-    title: 'Morning Shower',
-    target: 'Daily',
-    check: (planner) => {
-      const today = new Date().toISOString().split('T')[0];
-      return planner.some(e => e.date === today && (e.time_blocks || []).some((tb: any) => tb.title.toLowerCase().includes('shower') && tb.done));
-    },
-  },
-  {
-    id: 'egg',
-    icon: <Egg size={16} />,
-    title: 'Egg After Workout',
-    target: 'Daily',
-    check: (planner) => {
-      const today = new Date().toISOString().split('T')[0];
-      return planner.some(e => e.date === today && (e.time_blocks || []).some((tb: any) => tb.title.toLowerCase().includes('egg') && tb.done));
-    },
-  },
-  {
-    id: 'sleep',
-    icon: <Moon size={16} />,
-    title: 'Sleep 9:30-10 PM',
-    target: 'Daily',
-    check: () => {
-      const h = new Date().getHours();
-      return h >= 22 || h < 4;
-    },
-  },
-  {
-    id: 'wake',
-    icon: <Shield size={16} />,
-    title: 'Wake 4:30, Leave by 5:30',
-    target: 'Daily',
-    check: () => {
-      const h = new Date().getHours();
-      return h >= 5 && h < 22;
-    },
-  },
+const HABIT_STYLES = [
+  'border-cosmic-cyan/40 bg-cosmic-cyan/10 text-cosmic-cyan',
+  'border-cosmic-gold/40 bg-cosmic-gold/10 text-cosmic-gold',
+  'border-cosmic-rose/40 bg-cosmic-rose/10 text-cosmic-rose',
+  'border-cosmic-violet/40 bg-cosmic-violet/10 text-cosmic-violet',
 ];
 
-function DailyHabits({ planner, sports }: { planner: any[]; sports: any[] }) {
+const MAX_HABITS = 6;
+
+function DailyHabits() {
+  const { t } = useTranslation();
+  const { habits, addHabit, editHabit, removeHabit } = useStore();
+  const [drafts, setDrafts] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
+
+  const total = habits.length + drafts.length;
+  const canAdd = total < MAX_HABITS;
+
+  const setDraft = (idx: number, value: string) =>
+    setDrafts((d) => d.map((x, i) => (i === idx ? value : x)));
+
+  const saveDraft = async (idx: number) => {
+    const text = drafts[idx].trim();
+    if (!text) return;
+    setDrafts((d) => d.filter((_, i) => i !== idx));
+    await addHabit({ text });
+  };
+
+  const saveEdit = async (id: string) => {
+    const text = editingText.trim();
+    if (!text) return;
+    await editHabit(id, { text });
+    setEditingId(null);
+  };
+
   return (
     <div className="glass-card p-5 md:p-6 fade-in">
-      <div className="flex items-center gap-2 mb-4">
-        <Shield size={18} className="text-green-400" />
-        <h2 className="text-base font-semibold text-white">Daily Habits</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Shield size={18} className="text-cosmic-cyan" />
+          <h2 className="text-base font-semibold text-white">{t('habits.title')}</h2>
+        </div>
+        {canAdd && (
+          <button
+            onClick={() => setDrafts((d) => [...d, ''])}
+            className="flex items-center gap-1 text-xs font-medium text-cosmic-cyan hover:text-white px-2.5 py-1.5 rounded-lg bg-cosmic-cyan/10 hover:bg-cosmic-cyan/20 transition-colors"
+          >
+            <Plus size={14} />
+            {t('habits.add')}
+          </button>
+        )}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {DAILY_HABITS.map((habit) => {
-          const done = habit.check(planner, sports);
-          return (
-            <div key={habit.id} className={`rounded-xl p-3 flex flex-col items-center text-center transition-all ${
-              done ? 'bg-green-500/15 border border-green-500/30' : 'bg-white/5 border border-white/5'
-            }`}>
-              <div className={`mb-2 ${done ? 'text-green-400' : 'text-navy-300/40'}`}>{habit.icon}</div>
-              <p className={`text-xs font-medium leading-tight ${done ? 'text-green-300' : 'text-navy-200/60'}`}>{habit.title}</p>
-              <p className="text-[10px] text-navy-300/30 mt-1">{habit.target}</p>
-              {done && <Check size={12} className="text-green-400 mt-2" />}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {habits.length === 0 && drafts.length === 0 && (
+          <p className="col-span-full text-sm text-navy-200/40 text-center py-4">
+            {t('habits.empty')}
+          </p>
+        )}
+        {habits.map((habit, i) =>
+          editingId === habit.id ? (
+            <div key={habit.id} className="rounded-xl p-3 flex flex-col min-h-[110px] border border-dashed border-cosmic-gold/50 bg-cosmic-gold/10">
+              <input
+                value={editingText}
+                autoFocus
+                onChange={(e) => setEditingText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveEdit(habit.id);
+                  if (e.key === 'Escape') setEditingId(null);
+                }}
+                placeholder={t('habits.placeholder')}
+                className="bg-transparent flex-1 w-full text-center text-sm text-white outline-none placeholder:text-navy-300/40"
+              />
+              <div className="flex items-center justify-center gap-1.5 mt-2">
+                <button
+                  onClick={() => saveEdit(habit.id)}
+                  disabled={!editingText.trim()}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-cosmic-cyan bg-cosmic-cyan/15 hover:bg-cosmic-cyan/25 disabled:opacity-40 transition-colors"
+                >
+                  <Check size={12} />
+                  {t('habits.save')}
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-navy-200 bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <X size={12} />
+                  {t('habits.cancel')}
+                </button>
+              </div>
             </div>
-          );
-        })}
+          ) : (
+            <div key={habit.id} className={`rounded-xl p-3 flex flex-col items-center text-center min-h-[110px] border ${HABIT_STYLES[i % HABIT_STYLES.length]}`}>
+              <p className="flex-1 w-full text-sm font-medium leading-snug break-words flex items-center justify-center">
+                {habit.text}
+              </p>
+              <div className="flex items-center justify-center gap-1.5 mt-2">
+                <button
+                  onClick={() => { setEditingId(habit.id); setEditingText(habit.text); }}
+                  className="p-1.5 rounded-lg bg-white/10 text-navy-200 hover:bg-white/20 transition-colors"
+                  title={t('habits.edit')}
+                >
+                  <Pencil size={12} />
+                </button>
+                <button
+                  onClick={() => removeHabit(habit.id)}
+                  className="p-1.5 rounded-lg bg-white/10 text-navy-200 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
+                  title={t('habits.delete')}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            </div>
+          )
+        )}
+        {drafts.map((draft, idx) => (
+          <div key={`draft-${idx}`} className="rounded-xl p-3 flex flex-col min-h-[110px] border border-dashed border-white/15 bg-white/5">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(idx, e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveDraft(idx); }}
+              placeholder={t('habits.placeholder')}
+              className="bg-transparent flex-1 w-full text-center text-sm text-white outline-none placeholder:text-navy-300/40"
+            />
+            <div className="flex items-center justify-center gap-1.5 mt-2">
+              <button
+                onClick={() => saveDraft(idx)}
+                disabled={!draft.trim()}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-cosmic-cyan bg-cosmic-cyan/15 hover:bg-cosmic-cyan/25 disabled:opacity-40 transition-colors"
+              >
+                <Check size={12} />
+                {t('habits.save')}
+              </button>
+              <button
+                onClick={() => setDrafts((d) => d.filter((_, i) => i !== idx))}
+                className="p-1.5 rounded-lg bg-white/10 text-navy-200 hover:bg-white/20 transition-colors"
+                title={t('habits.delete')}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -471,7 +508,7 @@ function TagPerformanceChart({ planner }: { planner: any[] }) {
   const [range, setRange] = useState<'1w' | '2w' | '1m'>('1w');
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
-  const todayStr = useMemo(() => now.toISOString().split('T')[0], [now]);
+  const todayStr = useMemo(() => toLocalDateStr(now), [now]);
 
   const rangeInfo = useMemo(() => {
     const d = new Date(todayStr + 'T00:00:00');
@@ -480,7 +517,7 @@ function TagPerformanceChart({ planner }: { planner: any[] }) {
     else if (range === '2w') start.setDate(start.getDate() - 13);
     else start.setMonth(start.getMonth() - 1);
     return {
-      startStr: start.toISOString().split('T')[0],
+      startStr: toLocalDateStr(start),
       endStr: todayStr,
     };
   }, [range, todayStr]);
@@ -497,7 +534,7 @@ function TagPerformanceChart({ planner }: { planner: any[] }) {
     const endDate = new Date(rangeInfo.endStr + 'T23:59:59');
 
     while (cursor <= endDate) {
-      const ds = cursor.toISOString().split('T')[0];
+      const ds = toLocalDateStr(cursor);
       const label = cursor.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
 
       const dayBlocks = planner.filter((e: any) => e.date === ds);
@@ -508,7 +545,7 @@ function TagPerformanceChart({ planner }: { planner: any[] }) {
         let hours = 0;
         dayBlocks.forEach((e: any) => {
           (e.time_blocks || []).forEach((tb: any) => {
-            if (tb.tag === t.value && tb.done && tb.time && tb.completed_time) {
+            if (tb.tag === t.value && tb.done && tb.is_work !== false && tb.time && tb.completed_time) {
               const [sh, sm] = tb.time.split(':').map(Number);
               const [eh, em] = tb.completed_time.split(':').map(Number);
               hours += Math.max(0, ((eh * 60 + em) - (sh * 60 + sm)) / 60);
@@ -689,7 +726,7 @@ export default function Dashboard() {
     return () => clearInterval(id);
   }, [fetchAll]);
 
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = toLocalDateStr(now);
 
   const total = deadlines.length;
   const overdue = deadlines.filter((d) => d.status === 'overdue' || (new Date(d.due_date) < now && d.status !== 'completed'));
@@ -702,17 +739,31 @@ export default function Dashboard() {
     .filter((e) => e.date === todayStr)
     .reduce((sum, e) => sum + (e.time_blocks || []).filter((tb: any) => tb.done).length, 0);
   const todayDone = todayCompleted + todayBlocksDone;
-  const completedAllTime = deadlines.filter((d) => d.status === 'completed').length;
-  const pct = total > 0 ? Math.round((completedAllTime / total) * 100) : 0;
 
   const weekStart = new Date(now);
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  const weekStr = weekStart.toISOString().split('T')[0];
+  const weekStr = toLocalDateStr(weekStart);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  const weekEndStr = toLocalDateStr(weekEnd);
+
+  const weekBlocks = planner
+    .filter((e) => e.date >= weekStr && e.date <= weekEndStr)
+    .flatMap((e) => (e.time_blocks || []) as any[]);
+  const weekDeadlines = deadlines.filter((d) => {
+    const due = toLocalDateStr(new Date(d.due_date));
+    return due >= weekStr && due <= weekEndStr;
+  });
+  const weekTotal = weekBlocks.length + weekDeadlines.length;
+  const weekDone =
+    weekBlocks.filter((b) => b.done).length +
+    weekDeadlines.filter((d) => d.status === 'completed').length;
+  const weeklyPct = weekTotal > 0 ? Math.round((weekDone / weekTotal) * 100) : 0;
 
   const upcoming = deadlines.filter((d) => d.status !== 'completed')
     .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()).slice(0, 5);
 
-  const weekEntries = planner.filter((e) => e.date >= weekStr).slice(0, 5);
+  const weekEntries = planner.filter((e) => e.date >= weekStr && e.date <= weekEndStr).slice(0, 5);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-8">
@@ -730,12 +781,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={<AlertTriangle size={20} />} label={t('dashboard.overdue')} value={overdue.length} color="bg-cosmic-rose/20 text-cosmic-rose" pct={total > 0 ? Math.round((overdue.length / total) * 100) : 0} />
         <StatCard icon={<Clock size={20} />} label={t('dashboard.dueSoon')} value={dueSoon.length} color="bg-cosmic-gold/20 text-cosmic-gold" />
-        <StatCard icon={<Target size={20} />} label="Completed Today" value={todayDone} color="bg-green-500/20 text-green-400" pct={todayDone > 0 ? 100 : 0} />
-        <StatCard icon={<TrendingUp size={20} />} label={t('dashboard.weeklyProgress')} value={`${pct}%`} color="bg-cosmic-cyan/20 text-cosmic-cyan" pct={pct} />
+        <StatCard icon={<Target size={20} />} label="Completed Today" value={todayDone} color="bg-green-500/20 text-green-400" />
+        <StatCard icon={<TrendingUp size={20} />} label={t('dashboard.weeklyProgress')} value={`${weeklyPct}%`} color="bg-cosmic-cyan/20 text-cosmic-cyan" pct={weeklyPct} />
       </div>
 
       {/* Daily Habits */}
-      <DailyHabits planner={planner} sports={sports} />
+      <DailyHabits />
 
       {/* Big chart */}
       <ChartSection sports={sports} planner={planner} />

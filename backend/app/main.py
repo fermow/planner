@@ -21,10 +21,10 @@ from app.routes import (
     report,
     daily_summary,
     sports,
+    habits,
     finance,
     life_tree,
     connection,
-    ai,
 )
 from app.scheduler.notification_scheduler import (
     start_scheduler,
@@ -75,10 +75,10 @@ app.include_router(daily_activity.router)
 app.include_router(report.router)
 app.include_router(daily_summary.router)
 app.include_router(sports.router)
+app.include_router(habits.router)
 app.include_router(finance.router)
 app.include_router(life_tree.router)
 app.include_router(connection.router)
-app.include_router(ai.router)
 
 
 @app.get("/api/health")

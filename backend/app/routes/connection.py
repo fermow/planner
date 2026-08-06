@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException
-from typing import List
-
+from fastapi import APIRouter, HTTPException, Query
+from typing import List, Optional
+from pydantic import BaseModel
 from app.models.connection import Connection, ConnectionCreate, ConnectionUpdate
 from app.services.storage import storage
 
@@ -42,3 +42,37 @@ def delete_connection(connection_id: str):
     if not storage.delete(COLLECTION, connection_id):
         raise HTTPException(404, "Connection not found")
     return {"ok": True}
+
+
+@router.get("/search", response_model=List[Connection])
+def search_connections(q: str = Query(..., min_length=1)):
+    """Fast client-side search across name, label, relationship, description, and tags."""
+    query = q.lower()
+    items = storage.get_all(COLLECTION)
+    results: List[dict] = []
+    for item in items:
+        haystack_parts = [
+            item.get("name", ""),
+            item.get("label", "") or item.get("relationship", ""),
+            item.get("relationship", ""),
+            item.get("description", ""),
+        ]
+        haystack_parts.extend(item.get("tags", []))
+        haystack = " ".join(haystack_parts).lower()
+        if query in haystack:
+            results.append(item)
+    return results
+
+
+class PositionUpdate(BaseModel):
+    id: str
+    x: float
+    y: float
+
+
+@router.post("/positions/bulk", response_model=dict)
+def update_positions(body: List[PositionUpdate]):
+    """Bulk-update node positions for persistence after graph dragging."""
+    for pos in body:
+        storage.update(COLLECTION, pos.id, {"x": pos.x, "y": pos.y})
+    return {"ok": True, "updated": len(body)}

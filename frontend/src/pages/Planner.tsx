@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, X, ChevronLeft, ChevronRight, Check, Clock, FileText, Briefcase, Tag,
 } from 'lucide-react';
-import { formatDateShort, formatTime } from '../utils/formatTime';
+import { formatDateShort, formatTime, toLocalDateStr } from '../utils/formatTime';
 import { useStore } from '../store/useStore';
 import type { PlannerEntry, TimeBlock, TimeBlockTag } from '../types';
 import { TIME_BLOCK_TAGS } from '../types';
@@ -11,7 +11,7 @@ import { useTranslation } from '../i18n/t';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const today = new Date();
-const todayStr = today.toISOString().split('T')[0];
+const todayStr = toLocalDateStr(today);
 const todayDayName = DAYS[today.getDay()];
 
 function formatTimeDisplay(date: Date): string {
@@ -180,7 +180,7 @@ export default function PlannerPage() {
       <div className="overflow-x-auto -mx-3 md:mx-0 pb-2 scrollbar-thin">
         <div className="grid grid-cols-7 gap-1.5 md:gap-3 min-w-[630px] md:min-w-0 px-3 md:px-0">
           {weekDays.map((day) => {
-            const dateStr = day.toISOString().split('T')[0];
+            const dateStr = toLocalDateStr(day);
             const entry = getEntryForDate(dateStr);
             const isToday = dateStr === todayStr;
 

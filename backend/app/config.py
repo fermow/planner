@@ -6,11 +6,9 @@ import zoneinfo
 
 class Settings(BaseSettings):
     APP_NAME: str = "Celestial Desk"
-    DATA_DIR: str = "/data"
-    TZ: str = "Asia/Tehran"
+    DATA_DIR: str = str(Path(__file__).resolve().parents[2] / "data")
+    TZ: str = "UTC"
     LOG_LEVEL: str = "INFO"
-    OLLAMA_HOST: str = "http://host.docker.internal:11434"
-    OLLAMA_MODEL: str = "qwen2.5-coder:7b"
 
     class Config:
         env_file = ".env"
@@ -21,7 +19,14 @@ settings = Settings()
 DATA_DIR = Path(settings.DATA_DIR)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-TZ = zoneinfo.ZoneInfo(settings.TZ)
+try:
+    TZ = zoneinfo.ZoneInfo(settings.TZ)
+except zoneinfo.ZoneInfoNotFoundError:
+    import logging
+    logging.getLogger(__name__).warning(
+        "Unknown timezone %r, falling back to UTC", settings.TZ
+    )
+    TZ = timezone.utc
 
 
 def now_iso() -> str:

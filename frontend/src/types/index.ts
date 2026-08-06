@@ -204,6 +204,13 @@ export interface SportEntry {
   updated_at: string;
 }
 
+export interface Habit {
+  id: string;
+  text: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FinanceCard {
   id: string;
   nickname: string;
@@ -252,10 +259,15 @@ export interface Connection {
   id: string;
   name: string;
   relationship: string;
+  label?: string | null;
   description: string;
   emoji: string;
+  icon?: string | null;
+  color?: string | null;
   tags: string[];
   parent_id?: string | null;
+  x?: number | null;
+  y?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -271,25 +283,5 @@ export type Page =
   | 'sports'
   | 'finance'
   | 'life-tree'
-  | 'connections'
-  | 'ai-chat';
+  | 'connections';
 
-export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-export interface ChatHistoryEntry {
-  id: string;
-  mode: string;
-  user_message: string;
-  assistant_response: string;
-  timestamp: string;
-}
-
-export interface AIHealth {
-  status: string;
-  model: string;
-  ollama_host: string;
-  available_models?: string[];
-}

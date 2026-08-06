@@ -227,7 +227,7 @@ export default function LifeTreePage() {
       >
         <Suspense
           fallback={
-            <div className="h-[400px] md:h-[540px] flex items-center justify-center">
+            <div className="h-[540px] md:h-[720px] flex items-center justify-center">
               <div className="flex flex-col items-center gap-2 text-navy-200/60">
                 <TreePine size={24} className="animate-pulse text-cosmic-gold" />
                 <span className="text-xs">Loading 3D tree…</span>

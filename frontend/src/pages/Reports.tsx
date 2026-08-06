@@ -9,29 +9,29 @@ import { api } from '../api/client';
 import type { Report, DailyActivity, DailyTask, DailySummary, DailyTaskSummary } from '../types';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../i18n/t';
-import { formatWeekday, formatWeekdayShort } from '../utils/formatTime';
+import { formatWeekday, formatWeekdayShort, toLocalDateStr } from '../utils/formatTime';
 
 function todayStr() {
   const d = new Date();
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(d);
 }
 
 function weekAgoStr() {
   const d = new Date();
   d.setDate(d.getDate() - 7);
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(d);
 }
 
 function monthAgoStr() {
   const d = new Date();
   d.setMonth(d.getMonth() - 1);
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(d);
 }
 
 function yearAgoStr() {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 1);
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(d);
 }
 
 type ViewMode = 'daily' | 'weekly' | 'monthly' | 'summary';

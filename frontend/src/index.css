@@ -19,18 +19,18 @@
 
 /* ===== Hello Kitty Kawaii Theme 🎀 ===== */
 .theme-kawaii {
-  --bg-primary: #ffd4e0;
-  --bg-secondary: #ffc4d4;
-  --bg-card: rgba(255, 225, 240, 0.78);
+  --bg-primary: #fff5f8;
+  --bg-secondary: #ffeef3;
+  --bg-card: rgba(255, 255, 255, 0.9);
   --text-primary: #3d0a22;
   --text-secondary: #7a3050;
   --accent-cyan: #ff2d55;
   --accent-gold: #ff6088;
   --accent-rose: #d40032;
   --accent-violet: #c060a0;
-  --glass-border: rgba(255, 45, 85, 0.15);
-  --glass-bg: rgba(255, 232, 245, 0.78);
-  --shadow-glow: 0 0 28px rgba(255, 45, 85, 0.15);
+  --glass-border: rgba(255, 45, 85, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --shadow-glow: 0 0 28px rgba(255, 45, 85, 0.12);
 }
 
 /* ── Body & background ── */
@@ -39,26 +39,26 @@
   background: var(--bg-primary) !important;
 }
 
-.theme-kawaii canvas {
+.theme-kawaii canvas.starry-canvas {
   display: none !important;
 }
 
 .theme-kawaii .starry-bg {
   background:
-    radial-gradient(ellipse at 20% 30%, rgba(255, 120, 180, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(220, 80, 220, 0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(255, 140, 180, 0.35) 0%, transparent 50%),
-    linear-gradient(180deg, #ffd4e0 0%, #ffd8e2 40%, #ffdce6 100%) !important;
+    radial-gradient(ellipse at 20% 30%, rgba(255, 170, 205, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 140, 205, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 80%, rgba(255, 180, 210, 0.18) 0%, transparent 55%),
+    linear-gradient(180deg, #fff5f8 0%, #ffeef3 50%, #fff0f4 100%) !important;
 }
 
 /* ── Sidebar & bottom nav ── */
 .theme-kawaii aside,
 .theme-kawaii nav,
 .theme-kawaii header {
-  background: rgba(255, 200, 225, 0.9) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  border-color: rgba(255, 45, 85, 0.15) !important;
+  border-color: rgba(255, 45, 85, 0.12) !important;
 }
 
 .theme-kawaii aside .border-b,
@@ -69,17 +69,17 @@
 
 /* ── Glass cards ── */
 .theme-kawaii .glass-card {
-  background: rgba(255, 215, 235, 0.82);
-  backdrop-filter: blur(20px) saturate(1.6);
-  -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  border: 1px solid rgba(255, 45, 85, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 45, 85, 0.12);
   border-radius: 24px;
-  box-shadow: 0 4px 28px rgba(255, 45, 85, 0.1);
+  box-shadow: 0 4px 24px rgba(255, 45, 85, 0.08);
 }
 
 .theme-kawaii .glass-card:hover {
-  border-color: rgba(255, 45, 85, 0.25);
-  box-shadow: 0 8px 36px rgba(255, 45, 85, 0.15);
+  border-color: rgba(255, 45, 85, 0.2);
+  box-shadow: 0 8px 32px rgba(255, 45, 85, 0.12);
 }
 
 /* ── Text colors ── */
@@ -179,7 +179,7 @@
 
 /* ── Inputs ── */
 .theme-kawaii .celestial-input {
-  background: rgba(255, 190, 220, 0.55);
+  background: #ffffff;
   border: 1px solid rgba(255, 45, 85, 0.18);
   border-radius: 16px;
   color: #3d0a22;
@@ -196,7 +196,7 @@
 
 .theme-kawaii select,
 .theme-kawaii select option {
-  background: #ffc8d6;
+  background: #ffffff;
   color: #3d0a22;
 }
 
@@ -204,7 +204,7 @@
 .theme-kawaii input[type="datetime-local"],
 .theme-kawaii input[type="time"] {
   color-scheme: light;
-  background: rgba(255, 200, 225, 0.5) !important;
+  background: #ffffff !important;
   color: #3d0a22 !important;
 }
 
@@ -243,7 +243,7 @@
 .theme-kawaii .bg-black\/60,
 .theme-kawaii .bg-black\/50,
 .theme-kawaii .bg-black\/40 {
-  background: rgba(255, 210, 225, 0.6) !important;
+  background: rgba(255, 255, 255, 0.55) !important;
   backdrop-filter: blur(6px) !important;
 }
 

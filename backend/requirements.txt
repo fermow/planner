@@ -2,8 +2,5 @@ fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.3
 pydantic-settings==2.7.0
-python-dateutil==2.9.0
-pytz==2024.2
 apscheduler==3.10.4
 plyer==2.1.0
-httpx==0.28.1

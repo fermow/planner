@@ -1,9 +1,48 @@
+# ── Dependencies ─────────────────────────────────────────
 node_modules/
+
+# ── Builds / artifacts ───────────────────────────────────
 dist/
+build/
+*.tsbuildinfo
+
+# ── Env / secrets ────────────────────────────────────────
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.htpasswd
+*.secrets.*
+secrets/
+.git-credentials
+.credentials.json
+
+# ── Python ───────────────────────────────────────────────
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Editor / OS ──────────────────────────────────────────
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Logs ─────────────────────────────────────────────────
 *.log
-*.tmp
+logs/
+npm-debug.log*
+
+# ── Runtime data ─────────────────────────────────────────
+data/

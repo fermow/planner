@@ -4,9 +4,10 @@ import { Download, Upload, Database, Settings2, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../i18n/t';
+import { toLocalDateStr } from '../utils/formatTime';
 
 export default function SettingsPage() {
-  const { fetchAll, showToast, theme, setTheme } = useStore();
+  const { fetchAll, showToast, theme, setTheme, browserNotifEnabled, enableBrowserNotif, disableBrowserNotif } = useStore();
   const { t } = useTranslation();
   const [importing, setImporting] = useState(false);
 
@@ -16,7 +17,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `celestial-desk-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `celestial-desk-backup-${toLocalDateStr(new Date())}.json`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('Backup exported', 'success');
@@ -136,9 +137,24 @@ export default function SettingsPage() {
             <span className="text-navy-200">{t('settings.storageLabel')}</span>
             <span className="text-white">{t('settings.storage')}</span>
           </div>
-          <div className="flex justify-between p-2 rounded-lg bg-white/5">
+          <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
             <span className="text-navy-200">{t('settings.notificationEngine')}</span>
-            <span className="text-white">{t('settings.scheduler')}</span>
+            <button
+              onClick={async () => {
+                if (browserNotifEnabled) {
+                  disableBrowserNotif();
+                } else {
+                  await enableBrowserNotif();
+                }
+              }}
+              className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${browserNotifEnabled
+                ? 'text-emerald-300 border-emerald-400/40 bg-emerald-400/10 hover:bg-emerald-400/20'
+                : 'text-navy-200 border-white/10 bg-white/5 hover:bg-white/10'}`}
+            >
+              {typeof window !== 'undefined' && 'Notification' in window
+                ? browserNotifEnabled ? t('settings.notifOn') : t('settings.notifOff')
+                : t('settings.notifUnsupported')}
+            </button>
           </div>
         </div>
       </div>

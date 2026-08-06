@@ -149,7 +149,7 @@ export default function StarBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 pointer-events-none"
+      className="starry-canvas fixed inset-0 z-0 pointer-events-none"
       style={{ background: 'linear-gradient(180deg, #050510 0%, #0a0a1a 40%, #12122a 70%, #1a1a3e 100%)' }}
     />
   );

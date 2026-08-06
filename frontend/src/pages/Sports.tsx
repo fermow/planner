@@ -5,12 +5,12 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../i18n/t';
 import { useStore } from '../store/useStore';
-import { formatDateLong, formatDateMonth } from '../utils/formatTime';
+import { formatDateLong, formatDateMonth, toLocalDateStr } from '../utils/formatTime';
 import type { SportEntry, SportExercise } from '../types';
 
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const today = new Date();
-const todayStr = today.toISOString().split('T')[0];
+const todayStr = toLocalDateStr(today);
 const todayDayName = DAYS[today.getDay()];
 
 const INTENSITY_COLORS: Record<string, string> = {
@@ -122,7 +122,7 @@ export default function SportsPage() {
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(now.getFullYear(), now.getMonth(), d);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateStr(date);
     const entry = getEntryForDate(dateStr);
     const doneExercises = entry?.exercises.filter((e) => e.done) || [];
     monthDays.push({
@@ -168,7 +168,7 @@ export default function SportsPage() {
 
   const weekPlanned = weekDays
     .map((day) => {
-      const dateStr = day.toISOString().split('T')[0];
+      const dateStr = toLocalDateStr(day);
       return {
         date: dateStr,
         day,
@@ -342,7 +342,7 @@ export default function SportsPage() {
       <div className="overflow-x-auto -mx-3 md:mx-0 pb-2 scrollbar-thin">
         <div className="grid grid-cols-7 gap-1.5 md:gap-3 min-w-[630px] md:min-w-0 px-3 md:px-0">
           {weekDays.map((day) => {
-            const dateStr = day.toISOString().split('T')[0];
+            const dateStr = toLocalDateStr(day);
             const entry = getEntryForDate(dateStr);
             const isToday = dateStr === todayStr;
             const doneCount = entry?.exercises.filter((e) => e.done).length || 0;
