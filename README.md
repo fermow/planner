@@ -18,6 +18,7 @@
 
 ```bash
 git clone <your-repo-url> celestial-desk
+git clone https://github.com/fermow/planner.git celestial-desk
 cd celestial-desk
 
 make install   # only if Docker is not installed yet (auto-detects your OS)
