@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard, Clock, Calendar, BookOpen, Columns3, Settings, BarChart3, Sparkles, TreePine, Users, Music4,
+  LayoutDashboard, Clock, Calendar, BookOpen, Columns3, Settings, BarChart3, Sparkles, TreePine, Users, Music4, CalendarDays,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import type { Page } from '../types';
@@ -19,6 +19,7 @@ export default function Sidebar() {
     { page: 'life-tree', label: t('nav.lifeTree'), icon: <TreePine size={18} /> },
     { page: 'connections', label: t('nav.connections'), icon: <Users size={18} /> },
     { page: 'music', label: t('nav.music'), icon: <Music4 size={18} /> },
+    { page: 'calendar', label: t('nav.calendar'), icon: <CalendarDays size={18} /> },
     { page: 'reports', label: t('nav.reports'), icon: <BarChart3 size={18} /> },
     { page: 'settings', label: t('nav.settings'), icon: <Settings size={18} /> },
   ];

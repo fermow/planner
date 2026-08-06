@@ -21,6 +21,7 @@ import SettingsPage from '../pages/Settings';
 import LifeTreePage from '../pages/LifeTree';
 import ConnectionsPage from '../pages/Connections';
 import MusicPage from '../pages/Music';
+import CalendarPage from '../pages/Calendar';
 
 export default function Layout() {
   const { currentPage, setPage, toggleSearch, notifications, dismissNotification, sidebarOpen, toggleSidebar, setSidebarOpen, theme, toggleTheme } = useStore();
@@ -39,6 +40,7 @@ export default function Layout() {
     'life-tree': t('nav.lifeTree'),
     connections: t('nav.connections'),
     music: t('nav.music'),
+    calendar: t('nav.calendar'),
   };
 
   const bottomNavItems: { page: Page; label: string; icon: React.ReactNode }[] = [
@@ -175,6 +177,7 @@ export default function Layout() {
           {currentPage === 'life-tree' && <LifeTreePage key="life-tree" />}
           {currentPage === 'connections' && <ConnectionsPage key="connections" />}
           {currentPage === 'music' && <MusicPage key="music" />}
+          {currentPage === 'calendar' && <CalendarPage key="calendar" />}
         </main>
       </div>
 

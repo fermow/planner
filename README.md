@@ -1,6 +1,6 @@
 # ✦ Celestial Desk
 
-**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, journal, boards, life goals, favorite music, all behind a dreamy "Starry Night" interface.
+**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, Shamsi calendar, journal, boards, life goals, favorite music, all behind a dreamy "Starry Night" interface.
 
 > *"What makes the desert beautiful,' said the little prince, 'is that somewhere it hides a well."*
 > — Antoine de Saint-Exupéry, *The Little Prince*
@@ -98,6 +98,16 @@ Open **http://localhost:3030** — done.
 - Record **what you did**, **plans** and **reflections** for each day
 - Mood picker and Markdown support
 - Full journal history with date navigation
+
+### 🗓️ Shamsi Calendar
+
+![Calendar](docs/screenshots/calendar.png)
+
+- Persian (Jalali/Shamsi) calendar with all 12 months of the year in one view
+- Today panel, weekdays and year navigation (with "back to this year")
+- Built-in **Iranian holidays** (solar & lunar) highlighted on the grid
+- **Upcoming holidays** list and a day-detail popup with holiday/working-day status
+- RTL, Persian digits and the Vazirmatn typeface
 
 ### 🗂 Boards
 

@@ -246,5 +246,6 @@ export type Page =
   | 'reports'
   | 'life-tree'
   | 'connections'
-  | 'music';
+  | 'music'
+  | 'calendar';
 

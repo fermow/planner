@@ -2,7 +2,7 @@ const en: Record<string, string> = {
   "app.title": "Celestial Desk",
   "app.title.kitty": "🎀 Celestial Desk",
   "app.tagline": "Your universe of tasks",
-  "app.version": "Celestial Desk v1.0",
+  "app.version": "Celestial Desk v1.1",
 
   "nav.dashboard": "Dashboard",
   "nav.deadlines": "Deadlines",
@@ -17,6 +17,8 @@ const en: Record<string, string> = {
   "nav.home": "Home",
   "nav.people": "People",
   "nav.music": "Music",
+  "nav.calendar": "Shamsi Calendar",
+  "calendar.title": "Shamsi Calendar (1405)",
   "nav.kittyMode": "Kitty Mode",
   "nav.kittyModeOn": "🎀 Kitty Mode ON",
   "nav.kittyModeOff": "🌸 Kitty Mode",
