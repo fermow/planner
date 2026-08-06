@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Bell, Menu, LayoutDashboard, Clock, Calendar,
-  BookOpen, Columns3, BarChart3, Settings, Sparkles, Wallet, TreePine, Users, Music4,
+  BookOpen, Columns3, BarChart3, Settings, Sparkles, TreePine, Users, Music4,
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationToast from './NotificationToast';
@@ -18,8 +18,6 @@ import JournalPage from '../pages/Journal';
 import BoardsPage from '../pages/Boards';
 import ReportsPage from '../pages/Reports';
 import SettingsPage from '../pages/Settings';
-import SportsPage from '../pages/Sports';
-import FinancePage from '../pages/Finance';
 import LifeTreePage from '../pages/LifeTree';
 import ConnectionsPage from '../pages/Connections';
 import MusicPage from '../pages/Music';
@@ -38,8 +36,6 @@ export default function Layout() {
     boards: t('nav.boards'),
     reports: t('nav.reports'),
     settings: t('nav.settings'),
-    sports: t('sports.title'),
-    finance: t('nav.finance'),
     'life-tree': t('nav.lifeTree'),
     connections: t('nav.connections'),
     music: t('nav.music'),
@@ -49,10 +45,8 @@ export default function Layout() {
     { page: 'dashboard', label: t('nav.home'), icon: <LayoutDashboard size={20} /> },
     { page: 'deadlines', label: t('nav.deadlines'), icon: <Clock size={20} /> },
     { page: 'planner', label: t('nav.planner'), icon: <Calendar size={20} /> },
-    { page: 'sports', label: t('nav.sports'), icon: <Sparkles size={20} /> },
     { page: 'life-tree', label: t('nav.lifeTree'), icon: <TreePine size={20} /> },
     { page: 'connections', label: t('nav.people'), icon: <Users size={20} /> },
-    { page: 'finance', label: t('nav.finance'), icon: <Wallet size={20} /> },
     { page: 'reports', label: t('nav.reports'), icon: <BarChart3 size={20} /> },
     { page: 'music', label: t('nav.music'), icon: <Music4 size={20} /> },
   ];
@@ -178,8 +172,6 @@ export default function Layout() {
           {currentPage === 'boards' && <BoardsPage key="boards" />}
           {currentPage === 'reports' && <ReportsPage key="reports" />}
           {currentPage === 'settings' && <SettingsPage key="settings" />}
-          {currentPage === 'sports' && <SportsPage key="sports" />}
-          {currentPage === 'finance' && <FinancePage key="finance" />}
           {currentPage === 'life-tree' && <LifeTreePage key="life-tree" />}
           {currentPage === 'connections' && <ConnectionsPage key="connections" />}
           {currentPage === 'music' && <MusicPage key="music" />}

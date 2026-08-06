@@ -185,58 +185,12 @@ export interface DailySummary {
   updated_at: string;
 }
 
-export interface SportExercise {
-  id: string;
-  name: string;
-  duration: number;
-  intensity: string;
-  done: boolean;
-  scheduled_time?: string;
-}
-
-export interface SportEntry {
-  id: string;
-  date: string;
-  exercises: SportExercise[];
-  total_duration: number;
-  notes: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface Habit {
   id: string;
   text: string;
   created_at: string;
   updated_at: string;
 }
-
-export interface FinanceCard {
-  id: string;
-  nickname: string;
-  card_number: string;
-  cvv2: string;
-  expiry_date: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface FinanceTransaction {
-  id: string;
-  date: string;
-  card_id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export const TRANSACTION_CATEGORIES = [
-  'fun', 'work', 'food', 'transport', 'bills',
-  'shopping', 'health', 'education', 'other',
-] as const;
 
 export interface TreeBranch {
   id: string;
@@ -290,8 +244,6 @@ export type Page =
   | 'boards'
   | 'settings'
   | 'reports'
-  | 'sports'
-  | 'finance'
   | 'life-tree'
   | 'connections'
   | 'music';

@@ -1,6 +1,6 @@
 # ✦ Celestial Desk
 
-**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, journal, boards, life goals, finance, and sports, all behind a dreamy "Starry Night" interface.
+**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, journal, boards, life goals, favorite music, all behind a dreamy "Starry Night" interface.
 
 > *"What makes the desert beautiful,' said the little prince, 'is that somewhere it hides a well."*
 > — Antoine de Saint-Exupéry, *The Little Prince*
@@ -69,7 +69,7 @@ Open **http://localhost:3030** — done.
 - **Overview at a glance** — overdue and due-soon deadlines, tasks completed today, and a real weekly progress metric
 - **Weekly Progress** — computed from this week's planner blocks and deadlines due this week, not all-time totals
 - **Daily Habits** — up to 6 fillable habit boxes with save, edit and delete
-- **Hours Breakdown** — stacked area chart of work vs. sport hours (week / 2 weeks / month / custom)
+- **Hours Breakdown** — area chart of work hours (week / 2 weeks / month / custom)
 - **Tag Performance** — per-day stacked bars showing how much time went into each planner tag
 - **Upcoming Deadlines & Week's Plan** — quick summaries with progress bars
 
@@ -115,22 +115,6 @@ Open **http://localhost:3030** — done.
 - Daily, weekly and monthly report views
 - Auto-generated **daily summary** (done / not-done tasks, hours, notes, journal recap)
 - Planner hours, activity hours and totals for any date range
-
-### 🏋️ Sports
-
-![Sports](docs/screenshots/sports.png)
-
-- Log daily workouts with exercises, duration and intensity
-- Mark exercises done and see total daily duration
-- Month workout history
-
-### 💳 Finance
-
-![Finance](docs/screenshots/finance.png)
-
-- Store payment cards (nickname, card number, CVV2, expiry)
-- Log income / expense transactions with categories and descriptions
-- Categorized, per-card history
 
 ### 🌳 Life Tree
 
@@ -195,9 +179,8 @@ Open **http://localhost:3030** — done.
 │                  Backend (FastAPI)                         │
 │   http://localhost:8000  ·  docs at /docs                  │
 │   Routes: deadlines, planner, journal, boards, tables,     │
-│   whiteboards, sports, habits, finance, life-tree,         │
-│   connections, music, reports, daily-summary, search,      │
-│   backup                                                   │
+│   whiteboards, habits, life-tree, connections, music,      │
+│   reports, daily-summary, search, backup                   │
 └──────────────┬────────────────────────────────────────────┘
                │
 ┌──────────────▼────────────────────────────────────────────┐
@@ -370,9 +353,7 @@ All data lives as JSON files in `./data/` on your host (mounted into the contain
 | `planner.json`           | Weekly planner entries            |
 | `journal.json`           | Journal entries                   |
 | `whiteboards.json`       | Whiteboards                       |
-| `sports.json`            | Workout logs                      |
 | `habits.json`            | Daily habits                      |
-| `finance_cards.json` / `finance_transactions.json` | Finance data |
 | `life_tree.json`         | Life Tree goals                   |
 | `connections.json`       | People/relationships graph        |
 | `music.json` + `music/`  | Favorite tracks (metadata + files)|
@@ -399,11 +380,9 @@ Interactive docs are at **http://localhost:8000/docs**. All endpoints live under
 | Deadlines   | `GET/POST /api/deadlines`, `GET/PATCH/DELETE /api/deadlines/{id}` |
 | Planner     | `GET/POST /api/planner`, `GET/PATCH/DELETE /api/planner/{id}` |
 | Journal     | `GET/POST /api/journal`, `GET/PATCH/DELETE /api/journal/{id}` |
-| Sports      | `GET/POST /api/sports`, `GET/PATCH/DELETE /api/sports/{id}`, `GET /api/sports/date/{date}` |
 | Habits      | `GET/POST /api/habits`, `PATCH/DELETE /api/habits/{id}` |
 | Whiteboards | `GET/POST /api/whiteboards`, `GET/PUT/DELETE /api/whiteboards/{id}` |
 | Tables      | `GET/POST /api/tables`, `GET/PUT/DELETE /api/tables/{id}` |
-| Finance     | `GET/POST /api/finance/cards`, `GET/POST /api/finance/transactions`, ... |
 | Life Tree   | `GET/POST /api/life-tree`, `PATCH/DELETE /api/life-tree/{id}` |
 | Connections | `GET/POST /api/connections`, search, positions, ... |
 | Music       | `GET /api/music`, `POST /api/music/upload`, `GET /api/music/file/{filename}`, `PATCH/DELETE /api/music/{id}` |

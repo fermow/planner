@@ -74,28 +74,11 @@ export const api = {
   // Dashboard
   getDashboard: () => request<any>('/dashboard'),
 
-  // Sports
-  getSports: () => request<any[]>('/sports'),
-  createSportEntry: (data: any) => request<any>('/sports', { method: 'POST', body: JSON.stringify(data) }),
-  updateSportEntry: (id: string, data: any) => request<any>(`/sports/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteSportEntry: (id: string) => request<any>(`/sports/${id}`, { method: 'DELETE' }),
-  getSportByDate: (date: string) => request<any>(`/sports/date/${date}`),
-
   // Habits
   getHabits: () => request<any[]>('/habits'),
   createHabit: (data: any) => request<any>('/habits', { method: 'POST', body: JSON.stringify(data) }),
   updateHabit: (id: string, data: any) => request<any>(`/habits/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteHabit: (id: string) => request<any>(`/habits/${id}`, { method: 'DELETE' }),
-
-  // Finance
-  getFinanceCards: () => request<any[]>('/finance/cards'),
-  createFinanceCard: (data: any) => request<any>('/finance/cards', { method: 'POST', body: JSON.stringify(data) }),
-  updateFinanceCard: (id: string, data: any) => request<any>(`/finance/cards/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteFinanceCard: (id: string) => request<any>(`/finance/cards/${id}`, { method: 'DELETE' }),
-  getFinanceTransactions: () => request<any[]>('/finance/transactions'),
-  createFinanceTransaction: (data: any) => request<any>('/finance/transactions', { method: 'POST', body: JSON.stringify(data) }),
-  updateFinanceTransaction: (id: string, data: any) => request<any>(`/finance/transactions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteFinanceTransaction: (id: string) => request<any>(`/finance/transactions/${id}`, { method: 'DELETE' }),
 
   // Life Tree
   getLifeTree: () => request<any[]>('/life-tree'),

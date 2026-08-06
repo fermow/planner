@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, SportEntry, FinanceCard, FinanceTransaction, LifeTreeEntry, Connection, Habit, MusicTrack } from '../types';
+import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, LifeTreeEntry, Connection, Habit, MusicTrack } from '../types';
 import { api } from '../api/client';
 import { t } from '../i18n/t';
 
@@ -77,10 +77,7 @@ interface AppState {
   journal: JournalEntry[];
   whiteboards: Whiteboard[];
   tables: TableData[];
-  sports: SportEntry[];
   habits: Habit[];
-  financeCards: FinanceCard[];
-  financeTransactions: FinanceTransaction[];
   lifeTree: LifeTreeEntry[];
   connections: Connection[];
   notifications: Notification[];
@@ -140,27 +137,11 @@ interface AppState {
   enableBrowserNotif: () => Promise<boolean>;
   disableBrowserNotif: () => void;
 
-  // Sport actions
-  fetchSports: () => Promise<void>;
-  addSportEntry: (data: any) => Promise<void>;
-  editSportEntry: (id: string, data: any) => Promise<void>;
-  removeSportEntry: (id: string) => Promise<void>;
-
   // Habit actions
   fetchHabits: () => Promise<void>;
   addHabit: (data: any) => Promise<void>;
   editHabit: (id: string, data: any) => Promise<void>;
   removeHabit: (id: string) => Promise<void>;
-
-  // Finance actions
-  fetchFinanceCards: () => Promise<void>;
-  fetchFinanceTransactions: () => Promise<void>;
-  addFinanceCard: (data: any) => Promise<void>;
-  editFinanceCard: (id: string, data: any) => Promise<void>;
-  removeFinanceCard: (id: string) => Promise<void>;
-  addFinanceTransaction: (data: any) => Promise<void>;
-  editFinanceTransaction: (id: string, data: any) => Promise<void>;
-  removeFinanceTransaction: (id: string) => Promise<void>;
 
   // Life Tree actions
   fetchLifeTree: () => Promise<void>;
@@ -227,10 +208,7 @@ export const useStore = create<AppState>((set, get) => ({
   journal: [],
   whiteboards: [],
   tables: [],
-  sports: [],
   habits: [],
-  financeCards: [],
-  financeTransactions: [],
   lifeTree: [],
   connections: [],
   notifications: [],
@@ -470,33 +448,6 @@ export const useStore = create<AppState>((set, get) => ({
     get().setBrowserNotifEnabled(false);
   },
 
-  fetchSports: async () => {
-    try {
-      const data = await api.getSports();
-      set({ sports: data });
-    } catch (e: any) {
-      set({ error: e.message });
-    }
-  },
-
-  addSportEntry: async (data) => {
-    await api.createSportEntry(data);
-    await get().fetchSports();
-    get().showToast(t('sports.entryAdded'), 'success');
-  },
-
-  editSportEntry: async (id, data) => {
-    await api.updateSportEntry(id, data);
-    await get().fetchSports();
-    get().showToast(t('sports.entryUpdated'), 'success');
-  },
-
-  removeSportEntry: async (id) => {
-    await api.deleteSportEntry(id);
-    await get().fetchSports();
-    get().showToast(t('sports.entryRemoved'), 'success');
-  },
-
   fetchHabits: async () => {
     try {
       const data = await api.getHabits();
@@ -522,60 +473,6 @@ export const useStore = create<AppState>((set, get) => ({
     await api.deleteHabit(id);
     await get().fetchHabits();
     get().showToast(t('habits.deleted'), 'success');
-  },
-
-  fetchFinanceCards: async () => {
-    try {
-      const data = await api.getFinanceCards();
-      set({ financeCards: data });
-    } catch (e: any) {
-      set({ error: e.message });
-    }
-  },
-
-  fetchFinanceTransactions: async () => {
-    try {
-      const data = await api.getFinanceTransactions();
-      set({ financeTransactions: data });
-    } catch (e: any) {
-      set({ error: e.message });
-    }
-  },
-
-  addFinanceCard: async (data) => {
-    await api.createFinanceCard(data);
-    await get().fetchFinanceCards();
-    get().showToast(t('finance.cardAdded'), 'success');
-  },
-
-  editFinanceCard: async (id, data) => {
-    await api.updateFinanceCard(id, data);
-    await get().fetchFinanceCards();
-    get().showToast(t('finance.cardUpdated'), 'success');
-  },
-
-  removeFinanceCard: async (id) => {
-    await api.deleteFinanceCard(id);
-    await get().fetchFinanceCards();
-    get().showToast(t('finance.cardRemoved'), 'success');
-  },
-
-  addFinanceTransaction: async (data) => {
-    await api.createFinanceTransaction(data);
-    await get().fetchFinanceTransactions();
-    get().showToast(t('finance.transactionAdded'), 'success');
-  },
-
-  editFinanceTransaction: async (id, data) => {
-    await api.updateFinanceTransaction(id, data);
-    await get().fetchFinanceTransactions();
-    get().showToast(t('finance.transactionUpdated'), 'success');
-  },
-
-  removeFinanceTransaction: async (id) => {
-    await api.deleteFinanceTransaction(id);
-    await get().fetchFinanceTransactions();
-    get().showToast(t('finance.transactionRemoved'), 'success');
   },
 
   fetchLifeTree: async () => {
@@ -717,11 +614,8 @@ export const useStore = create<AppState>((set, get) => ({
         get().fetchJournal(),
         get().fetchWhiteboards(),
         get().fetchTables(),
-        get().fetchSports(),
         get().fetchHabits(),
         get().fetchNotifications(),
-        get().fetchFinanceCards(),
-        get().fetchFinanceTransactions(),
         get().fetchLifeTree(),
         get().fetchConnections(),
       ]);

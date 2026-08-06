@@ -61,7 +61,7 @@ function DeadlineCard({ deadline }: { deadline: Deadline }) {
 
 type RangePreset = '1w' | '2w' | '1m' | 'custom';
 
-function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
+function ChartSection({ planner }: { planner: any[] }) {
   const now = useClock();
   const { t } = useTranslation();
 
@@ -103,7 +103,7 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const labels: string[] = [];
-  const data: { work: number; sport: number }[] = [];
+  const data: { work: number }[] = [];
 
   const cursor = new Date(range.start);
   while (cursor <= range.end) {
@@ -124,19 +124,15 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
           return s + Math.max(0, mins / 60);
         }, 0);
       }, 0);
-    const sportHours = sports
-      .filter((s) => s.date === ds)
-      .reduce((sum, s) => sum + ((s.exercises || []).reduce((a: number, e: any) => a + (e.duration || 0), 0) / 60), 0);
-    data.push({ work: workHours, sport: sportHours });
+    data.push({ work: workHours });
 
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  const maxVal = Math.max(...data.map((d) => d.work + d.sport), 1);
+  const maxVal = Math.max(...data.map((d) => d.work), 1);
 
   const totalWorkHours = data.reduce((s, d) => s + d.work, 0);
-  const totalSportHours = data.reduce((s, d) => s + d.sport, 0);
-  const totalHours = totalWorkHours + totalSportHours;
+  const totalHours = totalWorkHours;
 
   return (
     <div className="glass-card p-5 md:p-6 fade-in">
@@ -207,7 +203,7 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
           {maxVal > 0 && (() => {
             const pts = data.map((d, i) => {
               const x = i * 60 + 30;
-              const y = chartH - ((d.work + d.sport) / maxVal) * chartH;
+              const y = chartH - ((d.work) / maxVal) * chartH;
               return `${x},${y}`;
             });
             const bottomLeft = `0,${chartH}`;
@@ -222,7 +218,7 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
           {maxVal > 0 && (() => {
             const pts = data.map((d, i) => {
               const x = i * 60 + 30;
-              const y = chartH - ((d.work + d.sport) / maxVal) * chartH;
+              const y = chartH - ((d.work) / maxVal) * chartH;
               return { x, y };
             });
             const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
@@ -238,7 +234,7 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
 
           {/* Dots */}
           {data.map((d, i) => {
-            const total = d.work + d.sport;
+            const total = d.work;
             const x = i * 60 + 30;
             const y = chartH - (total / maxVal) * chartH;
             const isHover = hoverIndex === i;
@@ -277,14 +273,13 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
         {/* HTML tooltips positioned near dots */}
         {data.map((d, i) => {
           if (hoverIndex !== i) return null;
-          const total = d.work + d.sport;
+          const total = d.work;
           const ds = new Date(range.start);
           ds.setDate(ds.getDate() + i);
           const dateStr = toLocalDateStr(ds);
           const blockCount = planner
             .filter((e: any) => e.date === dateStr)
             .reduce((s: number, e: any) => s + (e.time_blocks || []).filter((tb: any) => tb.done).length, 0);
-          const sessionCount = sports.filter((s: any) => s.date === dateStr).length;
           const x = i * 60 + 30;
           const y = chartH - (total / maxVal) * chartH;
           const pctX = (x / (data.length * 60)) * 100;
@@ -311,13 +306,8 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
                     <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-sky-400" />Work</span>
                     <span className="text-cosmic-cyan tabular-nums font-medium">{d.work.toFixed(1)}h <span className="text-navy-400/60">· {blockCount}</span></span>
                   </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-yellow-400" />Sport</span>
-                    <span className="text-cosmic-gold tabular-nums font-medium">{d.sport.toFixed(1)}h <span className="text-navy-400/60">· {sessionCount}</span></span>
-                  </div>
                   <div className="mt-1.5 flex h-1.5 w-full rounded-full overflow-hidden bg-white/5">
-                    <div className="h-full bg-gradient-to-r from-sky-400 to-cyan-500" style={{ width: `${total > 0 ? (d.work / total) * 100 : 0}%` }} />
-                    <div className="h-full bg-gradient-to-r from-yellow-400 to-amber-500" style={{ width: `${total > 0 ? (d.sport / total) * 100 : 0}%` }} />
+                    <div className="h-full bg-gradient-to-r from-sky-400 to-cyan-500" style={{ width: '100%' }} />
                   </div>
                 </div>
               </div>
@@ -342,10 +332,6 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-cosmic-cyan" />
             <span className="text-xs text-navy-200/60">Work hours</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-cosmic-gold" />
-            <span className="text-xs text-navy-200/60">Sport (actual hrs)</span>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs">
@@ -743,7 +729,7 @@ function TagPerformanceChart({ planner }: { planner: any[] }) {
 export default function Dashboard() {
   const { t } = useTranslation();
   const {
-    deadlines, planner, sports,
+    deadlines, planner,
     fetchAll,
   } = useStore();
   const now = useClock();
@@ -817,7 +803,7 @@ export default function Dashboard() {
       <DailyHabits />
 
       {/* Big chart */}
-      <ChartSection sports={sports} planner={planner} />
+      <ChartSection planner={planner} />
 
       {/* Tag Performance Charts */}
       <TagPerformanceChart planner={planner} />
