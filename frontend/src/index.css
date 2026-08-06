@@ -1,0 +1,752 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #12122a;
+  --bg-card: rgba(18, 18, 42, 0.7);
+  --text-primary: #e8eaf6;
+  --text-secondary: #9fa8da;
+  --accent-cyan: #40e0d0;
+  --accent-gold: #f0c040;
+  --accent-rose: #e040a0;
+  --accent-violet: #8040e0;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(18, 18, 42, 0.6);
+  --shadow-glow: 0 0 20px rgba(64, 224, 208, 0.15);
+}
+
+/* ===== Hello Kitty Kawaii Theme 🎀 ===== */
+.theme-kawaii {
+  --bg-primary: #ffd4e0;
+  --bg-secondary: #ffc4d4;
+  --bg-card: rgba(255, 225, 240, 0.78);
+  --text-primary: #3d0a22;
+  --text-secondary: #7a3050;
+  --accent-cyan: #ff2d55;
+  --accent-gold: #ff6088;
+  --accent-rose: #d40032;
+  --accent-violet: #c060a0;
+  --glass-border: rgba(255, 45, 85, 0.15);
+  --glass-bg: rgba(255, 232, 245, 0.78);
+  --shadow-glow: 0 0 28px rgba(255, 45, 85, 0.15);
+}
+
+/* ── Body & background ── */
+.theme-kawaii body,
+.theme-kawaii {
+  background: var(--bg-primary) !important;
+}
+
+.theme-kawaii canvas {
+  display: none !important;
+}
+
+.theme-kawaii .starry-bg {
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(255, 120, 180, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(220, 80, 220, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(255, 140, 180, 0.35) 0%, transparent 50%),
+    linear-gradient(180deg, #ffd4e0 0%, #ffd8e2 40%, #ffdce6 100%) !important;
+}
+
+/* ── Sidebar & bottom nav ── */
+.theme-kawaii aside,
+.theme-kawaii nav,
+.theme-kawaii header {
+  background: rgba(255, 200, 225, 0.9) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-color: rgba(255, 45, 85, 0.15) !important;
+}
+
+.theme-kawaii aside .border-b,
+.theme-kawaii nav .border-b,
+.theme-kawaii header .border-b {
+  border-color: rgba(255, 45, 85, 0.12) !important;
+}
+
+/* ── Glass cards ── */
+.theme-kawaii .glass-card {
+  background: rgba(255, 215, 235, 0.82);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255, 45, 85, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 4px 28px rgba(255, 45, 85, 0.1);
+}
+
+.theme-kawaii .glass-card:hover {
+  border-color: rgba(255, 45, 85, 0.25);
+  box-shadow: 0 8px 36px rgba(255, 45, 85, 0.15);
+}
+
+/* ── Text colors ── */
+.theme-kawaii .text-white,
+.theme-kawaii h1, .theme-kawaii h2, .theme-kawaii h3, .theme-kawaii h4,
+.theme-kawaii .font-semibold.text-white {
+  color: #3d0a22 !important;
+}
+
+.theme-kawaii .text-cosmic-cyan {
+  color: #ff2d55 !important;
+}
+
+.theme-kawaii .text-cosmic-gold {
+  color: #e06080 !important;
+}
+
+.theme-kawaii .text-cosmic-rose {
+  color: #d40032 !important;
+}
+
+.theme-kawaii .text-cosmic-violet {
+  color: #c060a0 !important;
+}
+
+.theme-kawaii .text-navy-100 { color: #3d0a22 !important; }
+.theme-kawaii .text-navy-200 { color: #7a3050 !important; }
+.theme-kawaii .text-navy-200\/60 { color: rgba(61, 10, 34, 0.55) !important; }
+.theme-kawaii .text-navy-200\/50 { color: rgba(61, 10, 34, 0.45) !important; }
+.theme-kawaii .text-navy-200\/40 { color: rgba(61, 10, 34, 0.35) !important; }
+.theme-kawaii .text-navy-300,
+.theme-kawaii .text-navy-300\/60,
+.theme-kawaii .text-navy-300\/50,
+.theme-kawaii .text-navy-300\/40,
+.theme-kawaii .text-navy-300\/30 { color: rgba(61, 10, 34, 0.4) !important; }
+.theme-kawaii .text-navy-400 { color: rgba(61, 10, 34, 0.3) !important; }
+.theme-kawaii .text-navy-500,
+.theme-kawaii .text-navy-300\/20 { color: rgba(61, 10, 34, 0.15) !important; }
+
+.theme-kawaii .text-green-400 { color: #ff2d55 !important; }
+.theme-kawaii .text-green-500 { color: #d40032 !important; }
+.theme-kawaii .line-through { color: rgba(61, 10, 34, 0.2) !important; }
+
+.theme-kawaii .priority-high { color: #d40032 !important; }
+.theme-kawaii .priority-medium { color: #e06080 !important; }
+.theme-kawaii .priority-low { color: #ff7096 !important; }
+
+/* ── Backgrounds ── */
+.theme-kawaii .bg-white\/5 {
+  background: rgba(255, 45, 85, 0.06) !important;
+}
+
+.theme-kawaii .bg-white\/10 {
+  background: rgba(255, 45, 85, 0.1) !important;
+}
+
+.theme-kawaii .bg-cosmic-cyan\/20 {
+  background: rgba(255, 45, 85, 0.12) !important;
+}
+
+.theme-kawaii .bg-cosmic-cyan\/10 {
+  background: rgba(255, 45, 85, 0.07) !important;
+}
+
+.theme-kawaii .bg-cosmic-rose\/20 {
+  background: rgba(212, 0, 50, 0.1) !important;
+}
+
+.theme-kawaii .bg-green-500\/20 {
+  background: rgba(255, 45, 85, 0.1) !important;
+}
+
+.theme-kawaii .bg-green-500 {
+  background: #ff2d55 !important;
+}
+
+/* ── Borders ── */
+.theme-kawaii .border-white\/5 {
+  border-color: rgba(255, 45, 85, 0.1) !important;
+}
+
+.theme-kawaii .border-white\/10 {
+  border-color: rgba(255, 45, 85, 0.15) !important;
+}
+
+.theme-kawaii .border-cosmic-cyan\/40 {
+  border-color: rgba(255, 45, 85, 0.4) !important;
+}
+
+.theme-kawaii .border-green-500 {
+  border-color: #ff2d55 !important;
+}
+
+.theme-kawaii .ring-cosmic-cyan\/20 {
+  --tw-ring-color: rgba(255, 45, 85, 0.18) !important;
+}
+
+/* ── Inputs ── */
+.theme-kawaii .celestial-input {
+  background: rgba(255, 190, 220, 0.55);
+  border: 1px solid rgba(255, 45, 85, 0.18);
+  border-radius: 16px;
+  color: #3d0a22;
+}
+
+.theme-kawaii .celestial-input::placeholder {
+  color: rgba(61, 10, 34, 0.35);
+}
+
+.theme-kawaii .celestial-input:focus {
+  border-color: #ff2d55;
+  box-shadow: 0 0 0 4px rgba(255, 45, 85, 0.12);
+}
+
+.theme-kawaii select,
+.theme-kawaii select option {
+  background: #ffc8d6;
+  color: #3d0a22;
+}
+
+.theme-kawaii input[type="date"],
+.theme-kawaii input[type="datetime-local"],
+.theme-kawaii input[type="time"] {
+  color-scheme: light;
+  background: rgba(255, 200, 225, 0.5) !important;
+  color: #3d0a22 !important;
+}
+
+.theme-kawaii input[type="checkbox"] {
+  accent-color: #ff2d55;
+}
+
+/* ── Buttons ── */
+.theme-kawaii .celestial-btn {
+  border-radius: 16px;
+  padding: 12px 22px;
+}
+
+.theme-kawaii .celestial-btn-primary {
+  background: linear-gradient(135deg, #ff2d55, #d40032) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.theme-kawaii .celestial-btn-primary:hover {
+  box-shadow: 0 0 28px rgba(255, 45, 85, 0.3);
+  transform: translateY(-2px);
+}
+
+.theme-kawaii .celestial-btn-secondary {
+  background: rgba(255, 45, 85, 0.1);
+  color: #3d0a22;
+  border: 1px solid rgba(255, 45, 85, 0.18);
+}
+
+.theme-kawaii .celestial-btn-secondary:hover {
+  background: rgba(255, 45, 85, 0.15);
+}
+
+/* ── Modal backdrops ── */
+.theme-kawaii .bg-black\/60,
+.theme-kawaii .bg-black\/50,
+.theme-kawaii .bg-black\/40 {
+  background: rgba(255, 210, 225, 0.6) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+/* ── Tags ── */
+.theme-kawaii .tag {
+  border-radius: 30px;
+  padding: 3px 14px;
+}
+
+.theme-kawaii .tag-cyan {
+  background: rgba(255, 45, 85, 0.14);
+  color: #ff2d55;
+}
+
+.theme-kawaii .tag-gold {
+  background: rgba(255, 112, 150, 0.18);
+  color: #d05070;
+}
+
+.theme-kawaii .tag-rose {
+  background: rgba(212, 0, 50, 0.14);
+  color: #d40032;
+}
+
+.theme-kawaii .tag-violet {
+  background: rgba(192, 96, 160, 0.14);
+  color: #c060a0;
+}
+
+/* ── Priority badges ── */
+.theme-kawaii .priority-high { color: #d40032 !important; }
+.theme-kawaii .priority-medium { color: #d05070 !important; }
+.theme-kawaii .priority-low { color: #ff2d55 !important; }
+
+/* ── Scrollbar ── */
+.theme-kawaii ::-webkit-scrollbar-thumb {
+  background: rgba(255, 45, 85, 0.18);
+  border-radius: 8px;
+}
+
+.theme-kawaii ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 45, 85, 0.35);
+}
+
+/* ── Gradients ── */
+.theme-kawaii .bg-gradient-to-r {
+  background-image: linear-gradient(to right, #ff2d55, #ff85b0) !important;
+}
+
+.theme-kawaii .bg-gradient-to-r.bg-clip-text {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+.theme-kawaii .from-cosmic-cyan {
+  --tw-gradient-from: #ff2d55 !important;
+}
+
+.theme-kawaii .from-cosmic-gold {
+  --tw-gradient-from: #ff6088 !important;
+}
+
+.theme-kawaii .to-cosmic-gold {
+  --tw-gradient-to: #ff85b0 !important;
+}
+
+.theme-kawaii .to-cosmic-violet {
+  --tw-gradient-to: #c060a0 !important;
+}
+
+.theme-kawaii .from-cosmic-rose {
+  --tw-gradient-from: #d40032 !important;
+}
+
+.theme-kawaii .to-red-500 {
+  --tw-gradient-to: #c80030 !important;
+}
+
+/* Progress bar track — make it visible in kawaii */
+.theme-kawaii .h-1\.5.rounded-full.bg-white\/5,
+.theme-kawaii .h-full.bg-gradient-to-r.rounded-full {
+  --track-bg: rgba(180, 60, 100, 0.2);
+}
+
+.theme-kawaii .h-1\.5.rounded-full.bg-white\/5 {
+  background: rgba(180, 60, 100, 0.15) !important;
+}
+
+/* ── Table ── */
+.theme-kawaii table th {
+  color: rgba(61, 10, 34, 0.35) !important;
+}
+
+.theme-kawaii table td {
+  color: rgba(61, 10, 34, 0.7) !important;
+}
+
+/* ── Misc overwrites ── */
+.theme-kawaii .opacity-50,
+.theme-kawaii .opacity-60 {
+  opacity: 0.35 !important;
+}
+
+.theme-kawaii .bg-black\/60,
+.theme-kawaii .bg-black\/50,
+.theme-kawaii .bg-black\/40 {
+  background: rgba(255, 232, 242, 0.75) !important;
+}
+
+.theme-kawaii select option {
+  background: #ffe0ea;
+  color: #3d0a22;
+}
+
+.theme-kawaii .text-cosmic-cyan\/80 {
+  color: rgba(255, 45, 85, 0.7) !important;
+}
+
+.theme-kawaii .text-cosmic-gold\/80 {
+  color: rgba(208, 80, 112, 0.7) !important;
+}
+
+.theme-kawaii .text-navy-300\/20 {
+  color: rgba(61, 10, 34, 0.15) !important;
+}
+
+.theme-kawaii .hover\:text-white:hover {
+  color: #d40032 !important;
+}
+
+.theme-kawaii .hover\:bg-white\/5:hover {
+  background: rgba(255, 45, 85, 0.06) !important;
+}
+
+.theme-kawaii .hover\:bg-white\/10:hover {
+  background: rgba(255, 45, 85, 0.1) !important;
+}
+
+/* sidebar active nav style */
+.theme-kawaii aside .bg-white\/10 {
+  background: rgba(255, 45, 85, 0.1) !important;
+}
+
+.theme-kawaii aside .shadow-glow {
+  box-shadow: 0 0 20px rgba(255, 45, 85, 0.1) !important;
+}
+
+/* Make the kawaii theme button in bottom nav more visible */
+.theme-kawaii nav .text-cosmic-cyan {
+  color: #ff2d55 !important;
+}
+
+/* Today highlight on planner */
+.theme-kawaii .border-cosmic-cyan\/40 {
+  border-color: rgba(255, 45, 85, 0.45) !important;
+}
+
+/* Shadow glow for active nav items */
+.theme-kawaii .shadow-glow {
+  box-shadow: 0 0 20px rgba(255, 45, 85, 0.12) !important;
+}
+
+/* Number inputs, stat values */
+.theme-kawaii .font-bold.text-white {
+  color: #3d0a22 !important;
+}
+
+.theme-kawaii .text-2xl.font-bold.text-white {
+  color: #3d0a22 !important;
+}
+
+.theme-kawaii .text-2xl.font-bold.text-cosmic-cyan {
+  color: #ff2d55 !important;
+}
+
+.theme-kawaii .text-2xl.font-bold.text-cosmic-gold {
+  color: #d05070 !important;
+}
+
+/* Notebook/empty state text */
+.theme-kawaii .text-navy-200\/60 {
+  color: rgba(61, 10, 34, 0.5) !important;
+}
+
+.theme-kawaii .hover\:text-cosmic-cyan:hover {
+  color: #ff2d55 !important;
+}
+
+.theme-kawaii .hover\:text-cosmic-rose:hover {
+  color: #d40032 !important;
+}
+
+/* Badge counts (deadlines sidebar) */
+.theme-kawaii .bg-cosmic-rose {
+  background: #d40032 !important;
+}
+
+.theme-kawaii .text-\[10px\].font-bold.text-white {
+  color: #ffffff !important;
+}
+
+/* ── Extra Colorful Kawaii Touches ── */
+
+/* Make progress bars / stat bars pink */
+.theme-kawaii .bg-cosmic-cyan,
+.theme-kawaii .bg-gradient-to-r.from-cosmic-cyan {
+  background: linear-gradient(135deg, #ff2d55, #ff7096) !important;
+}
+
+/* Colorful animated pulse on active items */
+.theme-kawaii .ring-2 {
+  --tw-ring-color: rgba(255, 45, 85, 0.5) !important;
+}
+
+/* Make calendar grid cells more visible */
+.theme-kawaii .border-r {
+  border-color: rgba(255, 45, 85, 0.12) !important;
+}
+
+/* Make the weekly planner grid more colorful */
+.theme-kawaii .col-span-1.bg-white\/5 {
+  background: rgba(255, 200, 225, 0.25) !important;
+}
+
+/* Highlight today in planner with extra pink */
+.theme-kawaii .border-cosmic-cyan\/40.bg-cosmic-cyan\/5 {
+  background: rgba(255, 45, 85, 0.08) !important;
+  border-color: rgba(255, 45, 85, 0.35) !important;
+}
+
+/* Kawaii-style "done" checkmarks */
+.theme-kawaii .line-through {
+  text-decoration-color: #ff2d55 !important;
+}
+
+/* More colorful scrollbar track */
+.theme-kawaii ::-webkit-scrollbar-track {
+  background: rgba(255, 200, 225, 0.2) !important;
+}
+
+/* Pink placeholder icons */
+.theme-kawaii .lucide-icon,
+.theme-kawaii svg.text-cosmic-cyan,
+.theme-kawaii svg.text-cosmic-gold {
+  opacity: 0.85;
+}
+
+/* Colorful empty-state illustrations */
+.theme-kawaii .text-navy-300,
+.theme-kawaii .text-navy-300\/60 {
+  color: rgba(61, 10, 34, 0.4) !important;
+}
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 22px;
+}
+
+/* Auto-direction for user input fields */
+input, textarea, [contenteditable] {
+  direction: auto;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Starry night background */
+.starry-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(18, 18, 42, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(10, 10, 26, 0.9) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(26, 26, 62, 0.6) 0%, transparent 50%);
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+}
+
+/* Glass card component */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), var(--shadow-glow);
+}
+
+.glass-card-glow {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), var(--shadow-glow);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(159, 168, 218, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(159, 168, 218, 0.5);
+}
+
+/* Smooth transition for all interactive elements */
+a, button, input, textarea, select {
+  transition: all 0.2s ease;
+}
+
+/* iOS safe area support */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile bottom nav safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Better touch targets on mobile */
+select option {
+  background: #1a1a3e;
+  color: #e8eaf6;
+}
+
+.theme-kawaii select option {
+  background: #ffc8d6;
+  color: #3d0a22;
+}
+
+@media (max-width: 767px) {
+  button, a, select, input[type="checkbox"], input[type="radio"] {
+    cursor: default;
+  }
+
+  input, textarea, select {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* Small screen breakpoint (for very small phones) */
+@media (min-width: 375px) {
+  .xs\:inline {
+    display: inline;
+  }
+}
+
+/* Tap highlight removal */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Staggered animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Input styling */
+.celestial-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.celestial-input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.1);
+}
+
+.celestial-input::placeholder {
+  color: rgba(159, 168, 218, 0.4);
+}
+
+/* Button styling */
+.celestial-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.celestial-btn-primary {
+  background: linear-gradient(135deg, var(--accent-cyan), #20b0a0);
+  color: #050510;
+}
+
+.celestial-btn-primary:hover {
+  box-shadow: 0 0 20px rgba(64, 224, 208, 0.3);
+  transform: translateY(-1px);
+}
+
+.celestial-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+}
+
+.celestial-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Tag / badge styling */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag-cyan { background: rgba(64, 224, 208, 0.15); color: var(--accent-cyan); }
+.tag-gold { background: rgba(240, 192, 64, 0.15); color: var(--accent-gold); }
+.tag-rose { background: rgba(224, 64, 160, 0.15); color: var(--accent-rose); }
+.tag-violet { background: rgba(128, 64, 224, 0.15); color: var(--accent-violet); }
+
+/* Priority badges */
+.priority-high { color: #ff6b6b; }
+.priority-medium { color: var(--accent-gold); }
+.priority-low { color: var(--accent-cyan); }
+
+/* Animation for particles */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.display-font {
+  font-family: 'Playfair Display', serif;
+}
