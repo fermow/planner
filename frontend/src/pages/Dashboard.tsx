@@ -187,9 +187,10 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox={`0 0 ${data.length * 60} ${chartH}`}>
           {/* Hover guide column */}
           {hoverIndex !== null && (
-            <rect id="hoverGuide"
+            <rect
               x={hoverIndex * 60 + 4} y={8} width={52} height={chartH - 12}
-              rx={10} fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.22)" strokeWidth={1} strokeDasharray="3,3" />
+              rx={10} fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.22)" strokeWidth={1} strokeDasharray="3,3"
+            />
           )}
 
           {/* Grid lines */}
@@ -202,46 +203,73 @@ function ChartSection({ sports, planner }: { sports: any[]; planner: any[] }) {
             );
           })}
 
-          {/* Bars — stacked: work (cyan) + sport (gold) */}
+          {/* Area fill */}
+          {maxVal > 0 && (() => {
+            const pts = data.map((d, i) => {
+              const x = i * 60 + 30;
+              const y = chartH - ((d.work + d.sport) / maxVal) * chartH;
+              return `${x},${y}`;
+            });
+            const bottomLeft = `0,${chartH}`;
+            const bottomRight = `${(data.length - 1) * 60 + 30},${chartH}`;
+            const d = `M${pts.join(' L')} L${bottomRight} L${bottomLeft} Z`;
+            return (
+              <path d={d} fill="url(#areaGrad)" opacity={0.25} />
+            );
+          })()}
+
+          {/* Line */}
+          {maxVal > 0 && (() => {
+            const pts = data.map((d, i) => {
+              const x = i * 60 + 30;
+              const y = chartH - ((d.work + d.sport) / maxVal) * chartH;
+              return { x, y };
+            });
+            const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+            return (
+              <>
+                <path d={d} fill="none" stroke="rgba(6,182,212,0.35)" strokeWidth={7}
+                  strokeLinecap="round" strokeLinejoin="round" opacity={0.5} style={{ transition: 'all .3s' }} />
+                <path d={d} fill="none" stroke="url(#lineGrad)" strokeWidth={2.5}
+                  strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'all .3s' }} />
+              </>
+            );
+          })()}
+
+          {/* Dots */}
           {data.map((d, i) => {
+            const total = d.work + d.sport;
             const x = i * 60 + 30;
-            const bw = 22;
-            const workH = (d.work / maxVal) * chartH;
-            const sportH = (d.sport / maxVal) * chartH;
+            const y = chartH - (total / maxVal) * chartH;
             const isHover = hoverIndex === i;
-            const glow = isHover ? 1 : 0;
             return (
               <g key={i}>
                 <rect x={x - 30} y={0} width={60} height={chartH} fill="transparent"
                   onMouseEnter={() => setHoverIndex(i)} onMouseLeave={() => setHoverIndex(null)} className="cursor-pointer" />
-                <rect x={x - bw / 2} y={chartH - workH} width={bw} height={workH}
-                  rx={workH > 0 ? 3 : 0} fill="url(#workGrad)"
-                  style={{ transition: 'opacity .15s', opacity: 1 }}
-                  stroke={glow ? "rgba(34,211,238,0.9)" : "rgba(34,211,238,0.35)"} strokeWidth={1}>
-                  <animate attributeName="height" from="0" to={workH} dur="0.5s" fill="freeze" />
-                </rect>
-                {sportH > 0 && (
-                  <rect x={x - bw / 2} y={chartH - workH - sportH} width={bw} height={sportH}
-                    rx={4} fill="url(#sportGrad)" style={{ transition: 'opacity .250s' }}
-                    stroke={glow ? "rgba(250,204,21,0.9)" : "rgba(250,204,21,0.35)"} strokeWidth={1}>
-                    <animate attributeName="opacity" from="0" to="1" dur="0.5s" fill="freeze" />
-                  </rect>
+                {isHover && (
+                  <line x1={x} y1={0} x2={x} y2={chartH}
+                    stroke="rgba(6,182,212,0.18)" strokeWidth={1} strokeDasharray="4,4" className="pointer-events-none" />
                 )}
-                {/* top glow dot */}
-                <circle cx={x} cy={chartH - workH - sportH} r={glow ? 2.2 : 0}
-                  fill={sportH > 0 ? "#fde68a" : "#67e8f9"} className="pointer-events-none" style={{ transition: 'r .2s' }} />
+                <circle cx={x} cy={y} r={isHover ? 6 : 3.5}
+                  fill="rgba(6,182,212,0.95)"
+                  stroke="#0b1422" strokeWidth={2}
+                  className="pointer-events-none" style={{ transition: 'r .15s' }} />
+                {isHover && (
+                  <circle cx={x} cy={y} r={10}
+                    fill="none" stroke="rgba(6,182,212,0.35)" strokeWidth={1.5} className="pointer-events-none" />
+                )}
               </g>
             );
           })}
 
           <defs>
-            <linearGradient id="workGrad" x1={0} y1={0} x2={0} y2={1}>
-              <stop offset="0%" stopColor="#67e8f9" />
-              <stop offset="100%" stopColor="#0891b2" />
+            <linearGradient id="areaGrad" x1={0} y1={0} x2={0} y2={1}>
+              <stop offset="0%" stopColor="rgba(6,182,212,0.32)" />
+              <stop offset="100%" stopColor="rgba(6,182,212,0)" />
             </linearGradient>
-            <linearGradient id="sportGrad" x1={0} y1={0} x2={0} y2={1}>
-              <stop offset="0%" stopColor="#fde68a" />
-              <stop offset="100%" stopColor="#f59e0b" />
+            <linearGradient id="lineGrad" x1={0} y1={0} x2={1} y2={0}>
+              <stop offset="0%" stopColor="rgba(6,182,212,1)" />
+              <stop offset="100%" stopColor="rgba(250,204,21,0.9)" />
             </linearGradient>
           </defs>
         </svg>

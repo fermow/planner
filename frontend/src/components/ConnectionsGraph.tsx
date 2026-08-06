@@ -29,10 +29,10 @@ interface ContextMenuState {
 }
 
 const NODE_RADIUS = 24;
-const ME_RADIUS = 34;
+const ME_RADIUS = 42;
 const MIN_SCALE = 0.15;
 const MAX_SCALE = 3.5;
-const INITIAL_SCALE = 0.6;
+const INITIAL_SCALE = 0.8;
 
 const COLORS: Record<string, string> = {
   grid: 'rgba(159, 168, 218, 0.03)',
@@ -63,7 +63,8 @@ export default function ConnectionsGraph({
   const sim = useForceSimulation(connections, dimensions);
 
   const [scale, setScale] = useState(INITIAL_SCALE);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [pan, setPan] = useState({ x: 400, y: 250 });
+  const centeredRef = useRef(false);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [focusMode, setFocusMode] = useState(false);

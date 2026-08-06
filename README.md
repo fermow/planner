@@ -12,38 +12,151 @@
 
 ---
 
-## ✨ Features
+## 🚀 Quick Start
 
-| Module | What it does |
-|--------|--------------|
-| **Dashboard** | Overview of overdue/due-soon deadlines, completed today, real **weekly progress**, daily habits, hours breakdown chart, tag performance and this week's plan |
-| **Deadlines** | Create, track and complete deadlines with priority, tags and subtasks |
-| **Smart Notifications** | Browser/OS alerts at **3d, 2d, 1d and 1h** before a deadline, plus overdue alerts and **startup catch-up** for anything you missed while offline — available on any OS (Windows, macOS, Linux) |
-| **Weekly Planner** | Day-by-day grid with time blocks, tags, completion tracking, mood and notes |
-| **Daily Journal** | Record *what you did*, *plans* and *reflections*, with mood tracking and Markdown |
-| **Boards** | Trello-like drag-and-drop boards **+ tables + freeform whiteboards** |
-| **Life Tree** | Visualize long-term and short-term goals as a tree (with a 3D view) |
-| **Connections** | A people/relationships graph with search, tags and a force-directed visualization |
-| **Reports** | Daily / weekly / monthly reports and an auto-generated **daily summary** |
-| **Sports** | Log workouts and track duration |
-| **Finance** | Cards, income/expense transactions and categorization |
-| **Daily Habits** | Fillable habit boxes (up to 6) with edit/delete |
-| **Global Search** | Instant search across everything (`Ctrl+K`) |
-| **Backup / Restore** | One-click JSON export/import in Settings, or CLI backups via `make backup` |
-| **Themes** | "Cosmic" (navy & teal) and "🎀 Kitty" (Hello Kitty pink) |
+> The whole project runs through `make`. You only need **Docker** and **Git**.
+
+```bash
+git clone <your-repo-url> celestial-desk
+cd celestial-desk
+
+make install   # only if Docker is not installed yet (auto-detects your OS)
+make doctor    # optional: verify Docker, Compose, ports, .env
+make setup     # creates .env + data/  (first time only)
+make up        # builds and starts the app
+```
+
+Open **http://localhost:3030** — done.
+
+| Service  | URL                      |
+|----------|--------------------------|
+| Frontend | http://localhost:3030    |
+| Backend  | http://localhost:8000    |
+| API Docs | http://localhost:8000/docs |
+
+### All Makefile commands
+
+| Command                 | What it does                                          |
+|-------------------------|-------------------------------------------------------|
+| `make help`             | List every available command                          |
+| `make install`          | Install Docker + Compose for your OS (Linux/macOS)    |
+| `make doctor`           | Check prerequisites (Docker, Compose, ports, `.env`)  |
+| `make setup`            | One-time setup: create `.env` + `data/`               |
+| `make up`               | Build & start (development mode, hot reload)          |
+| `make prod`             | Build & start (production/optimized build)            |
+| `make dev`              | Start only the frontend dev server                    |
+| `make stop` / `make down` | Stop all services (data is kept)                    |
+| `make restart`          | Restart all services                                  |
+| `make ps`               | Show running services                                 |
+| `make build`            | Build the Docker images                               |
+| `make rebuild`          | Rebuild images and restart the stack                  |
+| `make logs`             | Follow logs of all services                           |
+| `make logs-backend`     | Follow backend logs                                   |
+| `make logs-frontend`    | Follow frontend (dev) logs                            |
+| `make backup`           | Timestamped backup of `./data` → `data/backups/`      |
+| `make restore FILE=...` | Restore a backup into `./data`                        |
+| `make enable-boot`      | Auto-start on boot (Linux / systemd)                  |
+| `make clean`            | Remove containers & anonymous volumes (keeps `./data`)|
 
 ---
 
-## 📸 Screenshots
+## ✨ Features & Screenshots
 
-| | |
-|---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Planner](docs/screenshots/planner.png) |
-| ![Deadlines](docs/screenshots/deadlines.png) | ![Journal](docs/screenshots/journal.png) |
-| ![Boards](docs/screenshots/boards.png) | ![Reports](docs/screenshots/reports.png) |
-| ![Sports](docs/screenshots/sports.png) | ![Finance](docs/screenshots/finance.png) |
-| ![Life Tree](docs/screenshots/life-tree.png) | ![Connections](docs/screenshots/connections.png) |
-| ![Settings](docs/screenshots/settings.png) | |
+### 📊 Dashboard
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+- **Overview at a glance** — overdue and due-soon deadlines, tasks completed today, and a real weekly progress metric
+- **Weekly Progress** — computed from this week's planner blocks and deadlines due this week, not all-time totals
+- **Daily Habits** — up to 6 fillable habit boxes with save, edit and delete
+- **Hours Breakdown** — stacked area chart of work vs. sport hours (week / 2 weeks / month / custom)
+- **Tag Performance** — per-day stacked bars showing how much time went into each planner tag
+- **Upcoming Deadlines & Week's Plan** — quick summaries with progress bars
+
+### ⏰ Deadlines
+
+![Deadlines](docs/screenshots/deadlines.png)
+
+- Create deadlines with description, due date, priority, tags and subtasks
+- Track progress and mark as completed
+- **Smart reminders** — desktop/browser alerts at **3d, 2d, 1d and 1h** before the deadline, plus **overdue** alerts
+- **Startup catch-up** — missed notification windows fire on the next start
+
+### 📅 Weekly Planner
+
+![Planner](docs/screenshots/planner.png)
+
+- Day-by-day grid for the whole week
+- **Time blocks** with title, start time, description and a work/study **tag**
+- Mark blocks done and track daily completion percentages
+- Mood tracking and per-day notes
+
+### 📓 Daily Journal
+
+![Journal](docs/screenshots/journal.png)
+
+- Record **what you did**, **plans** and **reflections** for each day
+- Mood picker and Markdown support
+- Full journal history with date navigation
+
+### 🗂 Boards
+
+![Boards](docs/screenshots/boards.png)
+
+- Trello-style boards with columns and cards
+- Fullscreen editing mode
+- Embedded **Table** editor
+- Embedded **Whiteboard** canvas
+
+### 📈 Reports
+
+![Reports](docs/screenshots/reports.png)
+
+- Daily, weekly and monthly report views
+- Auto-generated **daily summary** (done / not-done tasks, hours, notes, journal recap)
+- Planner hours, activity hours and totals for any date range
+
+### 🏋️ Sports
+
+![Sports](docs/screenshots/sports.png)
+
+- Log daily workouts with exercises, duration and intensity
+- Mark exercises done and see total daily duration
+- Month workout history
+
+### 💳 Finance
+
+![Finance](docs/screenshots/finance.png)
+
+- Store payment cards (nickname, card number, CVV2, expiry)
+- Log income / expense transactions with categories and descriptions
+- Categorized, per-card history
+
+### 🌳 Life Tree
+
+![Life Tree](docs/screenshots/life-tree.png)
+
+- Long-term and short-term goals structured as a tree of branches
+- Mark goals as done as you progress
+- Interactive 3D view of your goal tree
+
+### 🌐 Connections
+
+People and relationships, organized as a graph:
+
+- Force-directed visualization of your connections
+- Search, tags and relationships between people
+- Add and edit connections with emoji, colors and labels
+
+### ⚙️ Settings
+
+![Settings](docs/screenshots/settings.png)
+
+- **Themes** — "Cosmic" (navy & teal) or "🎀 Kitty" (Hello Kitty pink)
+- **Backup / Restore** — one-click JSON export and import
+- **Notification Engine** — toggle browser notifications
+- **Keyboard shortcuts** — `Ctrl+K` global search, `Esc` close
+- **System info** — app version, storage, scheduler status
 
 ---
 
@@ -72,13 +185,13 @@
 │   http://localhost:8000  ·  docs at /docs                  │
 │   Routes: deadlines, planner, journal, boards, tables,     │
 │   whiteboards, sports, habits, finance, life-tree,         │
-│   connections, reports, daily-summary, search, backup   │
+│   connections, reports, daily-summary, search, backup      │
 └──────────────┬────────────────────────────────────────────┘
                │
 ┌──────────────▼────────────────────────────────────────────┐
 │               Data (JSON files, host ./data/)              │
 │   deadlines.json · planner.json · journal.json · ...       │
-│   Daily summaries · chat history · notification history    │
+│   Daily summaries · notification history                   │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -114,52 +227,11 @@ celestial-desk/
 │   ├── backup.sh / restore.sh      # Data backups
 │   ├── start.sh / stop.sh / logs.sh
 │   └── enable-boot.sh              # Auto-start on boot (systemd)
+├── docs/screenshots/               # README screenshots
 ├── docker-compose.yml
 ├── .env.example
 └── Makefile                        # One-command everything
 ```
-
----
-
-## 🚀 Quick Start
-
-> The whole project runs through `make`. You only need **Docker** and **Git**.
-
-```bash
-git clone <your-repo-url> celestial-desk
-cd celestial-desk
-
-make install   # only if Docker is not installed yet (auto-detects your OS)
-make doctor    # optional: verify Docker, Compose, ports, .env
-make setup     # creates .env + data/  (first time only)
-make up        # builds and starts the app
-```
-
-Open **http://localhost:3030** — done.
-
-### All Makefile commands
-
-| Command                 | What it does                                          |
-|-------------------------|-------------------------------------------------------|
-| `make help`             | List every available command                          |
-| `make install`          | Install Docker + Compose for your OS (Linux/macOS)    |
-| `make doctor`           | Check prerequisites (Docker, Compose, ports, `.env`)  |
-| `make setup`            | One-time setup: create `.env` + `data/`               |
-| `make up`               | Build & start (development mode, hot reload)          |
-| `make prod`             | Build & start (production/optimized build)            |
-| `make dev`              | Start only the frontend dev server                    |
-| `make stop` / `make down` | Stop all services (data is kept)                    |
-| `make restart`          | Restart all services                                  |
-| `make ps`               | Show running services                                 |
-| `make build`            | Build the Docker images                               |
-| `make rebuild`          | Rebuild images and restart the stack                  |
-| `make logs`             | Follow logs of all services                           |
-| `make logs-backend`     | Follow backend logs                                   |
-| `make logs-frontend`    | Follow frontend (dev) logs                            |
-| `make backup`           | Timestamped backup of `./data` → `data/backups/`      |
-| `make restore FILE=...` | Restore a backup into `./data`                        |
-| `make enable-boot`      | Auto-start on boot (Linux / systemd)                  |
-| `make clean`            | Remove containers & anonymous volumes (keeps `./data`)|
 
 ---
 
@@ -273,14 +345,6 @@ DATA_DIR=/data                         # Path inside the container (leave as-is)
 ```
 
 - `TZ` controls all date handling and the deadline notification engine. It boots to **UTC** by default so any machine works out of the box. On Linux, `scripts/start.sh` auto-detects your system timezone (`Europe/Berlin`, `Asia/Tehran`, ...) when `TZ` is left unset — on macOS/Windows set it manually in `.env`.
-
-### Services & ports
-
-| Service  | URL                      |
-|----------|--------------------------|
-| Frontend | http://localhost:3030    |
-| Backend  | http://localhost:8000    |
-| API Docs | http://localhost:8000/docs |
 
 ---
 
