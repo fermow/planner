@@ -1,5 +1,6 @@
 import Layout from './components/Layout';
 import StarBackground from './components/StarBackground';
+import MusicPlayerProvider from './components/MusicPlayerProvider';
 import { useStore } from './store/useStore';
 import { useBrowserNotifications } from './hooks/useBrowserNotifications';
 
@@ -13,9 +14,11 @@ export default function App() {
 
   return (
     <div className={theme === 'kawaii' ? 'theme-kawaii' : ''}>
-      <StarBackground />
-      <Layout />
-      <NotificationPump />
+      <MusicPlayerProvider>
+        <StarBackground />
+        <Layout />
+        <NotificationPump />
+      </MusicPlayerProvider>
     </div>
   );
 }
