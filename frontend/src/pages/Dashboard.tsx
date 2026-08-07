@@ -67,11 +67,19 @@ function ChartSection({ planner }: { planner: any[] }) {
 
   const chartRef = useRef<HTMLDivElement>(null);
   const [chartH, setChartH] = useState(176);
+  const [chartW, setChartW] = useState(480);
 
   useEffect(() => {
-    if (chartRef.current) {
-      setChartH(chartRef.current.clientHeight);
-    }
+    const el = chartRef.current;
+    if (!el) return;
+    const update = () => {
+      setChartH(el.clientHeight);
+      setChartW(el.clientWidth);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   const [preset, setPreset] = useState<RangePreset>('1w');
@@ -103,36 +111,40 @@ function ChartSection({ planner }: { planner: any[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const labels: string[] = [];
-  const data: { work: number }[] = [];
+  const data: { tags: Record<string, number>; total: number }[] = [];
 
   const cursor = new Date(range.start);
   while (cursor <= range.end) {
     const ds = toLocalDateStr(cursor);
     labels.push(cursor.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
 
-    const workHours = planner
+    const tags: Record<string, number> = {};
+    let total = 0;
+    planner
       .filter((e) => e.date === ds)
-      .reduce((sum, e) => {
-        const blocks: any[] = e.time_blocks || [];
-        return sum + blocks.reduce((s, tb) => {
-          if (!tb.done) return s;
-          if (tb.is_work === false) return s;
-          if (!tb.time || !tb.completed_time) return s;
+      .forEach((e) => {
+        (e.time_blocks || []).forEach((tb: any) => {
+          if (!tb.done || tb.is_work === false || !tb.time || !tb.completed_time) return;
           const [sh, sm] = tb.time.split(':').map(Number);
           const [eh, em] = tb.completed_time.split(':').map(Number);
-          const mins = (eh * 60 + em) - (sh * 60 + sm);
-          return s + Math.max(0, mins / 60);
-        }, 0);
-      }, 0);
-    data.push({ work: workHours });
+          const hrs = Math.max(0, ((eh * 60 + em) - (sh * 60 + sm)) / 60);
+          const key = tb.tag || 'work';
+          tags[key] = (tags[key] || 0) + hrs;
+          total += hrs;
+        });
+      });
+    data.push({ tags, total });
 
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  const maxVal = Math.max(...data.map((d) => d.work), 1);
+  const maxVal = Math.max(...data.map((d) => d.total), 1);
 
-  const totalWorkHours = data.reduce((s, d) => s + d.work, 0);
-  const totalHours = totalWorkHours;
+  const totalHours = data.reduce((s, d) => s + d.total, 0);
+
+  const activeTags = TIME_BLOCK_TAGS.filter((tag) => data.some((d) => (d.tags[tag.value] || 0) > 0));
+
+  const invSx = chartW > 0 ? (data.length * 60) / chartW : 1;
 
   return (
     <div className="glass-card p-5 md:p-6 fade-in">
@@ -140,7 +152,7 @@ function ChartSection({ planner }: { planner: any[] }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <BarChart3 size={18} className="text-cosmic-cyan" />
-          <h2 className="text-base font-semibold text-white">Hours Breakdown</h2>
+          <h2 className="text-base font-semibold text-white">{t('dashboard.hoursBreakdown')}</h2>
         </div>
 
         <div className="flex items-center gap-2">
@@ -154,7 +166,7 @@ function ChartSection({ planner }: { planner: any[] }) {
                   : 'bg-white/5 text-navy-200/60 hover:text-white hover:bg-white/10'
               }`}
             >
-              {p === '1w' ? 'Week' : p === '2w' ? '2 Weeks' : p === '1m' ? 'Month' : 'Custom'}
+              {p === '1w' ? t('dashboard.week') : p === '2w' ? t('dashboard.twoWeeks') : p === '1m' ? t('dashboard.month') : t('dashboard.custom')}
             </button>
           ))}
         </div>
@@ -164,13 +176,13 @@ function ChartSection({ planner }: { planner: any[] }) {
       {preset === 'custom' && (
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-navy-200/60">From</span>
+            <span className="text-xs text-navy-200/60">{t('dashboard.from')}</span>
             <input type="date" value={customStart}
               onChange={(e) => setCustomStart(e.target.value)}
               className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-navy-200/60">To</span>
+            <span className="text-xs text-navy-200/60">{t('dashboard.to')}</span>
             <input type="date" value={customEnd}
               onChange={(e) => setCustomEnd(e.target.value)}
               className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white" />
@@ -195,7 +207,7 @@ function ChartSection({ planner }: { planner: any[] }) {
             return (
               <line key={frac} x1={0} y1={y} x2={data.length * 60} y2={y}
                 stroke={frac === 0 ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)"}
-                strokeWidth={1} strokeDasharray={frac === 0 ? "none" : "2,5"} />
+                strokeWidth={1} strokeDasharray={frac === 0 ? "none" : "2,5"} vectorEffect="non-scaling-stroke" />
             );
           })}
 
@@ -203,7 +215,7 @@ function ChartSection({ planner }: { planner: any[] }) {
           {maxVal > 0 && (() => {
             const pts = data.map((d, i) => {
               const x = i * 60 + 30;
-              const y = chartH - ((d.work) / maxVal) * chartH;
+              const y = chartH - ((d.total) / maxVal) * chartH;
               return `${x},${y}`;
             });
             const bottomLeft = `0,${chartH}`;
@@ -218,41 +230,49 @@ function ChartSection({ planner }: { planner: any[] }) {
           {maxVal > 0 && (() => {
             const pts = data.map((d, i) => {
               const x = i * 60 + 30;
-              const y = chartH - ((d.work) / maxVal) * chartH;
+              const y = chartH - ((d.total) / maxVal) * chartH;
               return { x, y };
             });
             const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
             return (
               <>
                 <path d={d} fill="none" stroke="rgba(6,182,212,0.35)" strokeWidth={7}
-                  strokeLinecap="round" strokeLinejoin="round" opacity={0.5} style={{ transition: 'all .3s' }} />
+                  strokeLinecap="round" strokeLinejoin="round" opacity={0.5} vectorEffect="non-scaling-stroke" style={{ transition: 'all .3s' }} />
                 <path d={d} fill="none" stroke="url(#lineGrad)" strokeWidth={2.5}
-                  strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'all .3s' }} />
+                  strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ transition: 'all .3s' }} />
               </>
             );
           })()}
 
           {/* Dots */}
           {data.map((d, i) => {
-            const total = d.work;
             const x = i * 60 + 30;
-            const y = chartH - (total / maxVal) * chartH;
+            const y = chartH - (d.total / maxVal) * chartH;
             const isHover = hoverIndex === i;
+            const hasHours = d.total > 0;
+            const sheenR = isHover ? 2.8 : 2;
             return (
               <g key={i}>
                 <rect x={x - 30} y={0} width={60} height={chartH} fill="transparent"
                   onMouseEnter={() => setHoverIndex(i)} onMouseLeave={() => setHoverIndex(null)} className="cursor-pointer" />
                 {isHover && (
                   <line x1={x} y1={0} x2={x} y2={chartH}
-                    stroke="rgba(6,182,212,0.18)" strokeWidth={1} strokeDasharray="4,4" className="pointer-events-none" />
+                    stroke="rgba(6,182,212,0.18)" strokeWidth={1} strokeDasharray="4,4" vectorEffect="non-scaling-stroke" className="pointer-events-none" />
                 )}
-                <circle cx={x} cy={y} r={isHover ? 6 : 3.5}
-                  fill="rgba(6,182,212,0.95)"
-                  stroke="#0b1422" strokeWidth={2}
-                  className="pointer-events-none" style={{ transition: 'r .15s' }} />
-                {isHover && (
-                  <circle cx={x} cy={y} r={10}
-                    fill="none" stroke="rgba(6,182,212,0.35)" strokeWidth={1.5} className="pointer-events-none" />
+                <g transform={`translate(${x}, ${y}) scale(${invSx}, 1)`} className="pointer-events-none">
+                  <circle r={isHover ? 18 : 12} fill="url(#dotHalo)" opacity={hasHours ? (isHover ? 1 : 0.7) : 0}
+                    style={{ transition: 'r .25s, opacity .25s' }} />
+                  <circle r={isHover ? 7 : 5} fill={hasHours ? "url(#dotGrad)" : "rgba(148,163,184,0.35)"}
+                    stroke={hasHours ? "#0b1422" : "rgba(148,163,184,0.25)"} strokeWidth={2.5}
+                    opacity={hasHours ? 1 : 0.6} style={{ transition: 'r .15s, opacity .2s' }} />
+                  {hasHours && (
+                    <circle cx={-sheenR} cy={-sheenR} r={sheenR * 0.6} fill="rgba(255,255,255,0.75)"
+                      style={{ transition: 'r .15s, cx .15s, cy .15s' }} />
+                  )}
+                </g>
+                {isHover && hasHours && (
+                  <circle cx={x} cy={y} r={11}
+                    fill="none" stroke="rgba(6,182,212,0.35)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" className="pointer-events-none" />
                 )}
               </g>
             );
@@ -267,21 +287,26 @@ function ChartSection({ planner }: { planner: any[] }) {
               <stop offset="0%" stopColor="rgba(6,182,212,1)" />
               <stop offset="100%" stopColor="rgba(250,204,21,0.9)" />
             </linearGradient>
+            <radialGradient id="dotHalo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(6,182,212,0.45)" />
+              <stop offset="100%" stopColor="rgba(6,182,212,0)" />
+            </radialGradient>
+            <linearGradient id="dotGrad" x1={0} y1={0} x2={1} y2={1}>
+              <stop offset="0%" stopColor="#67e8f9" />
+              <stop offset="100%" stopColor="#0891b2" />
+            </linearGradient>
           </defs>
         </svg>
 
         {/* HTML tooltips positioned near dots */}
         {data.map((d, i) => {
           if (hoverIndex !== i) return null;
-          const total = d.work;
-          const ds = new Date(range.start);
-          ds.setDate(ds.getDate() + i);
-          const dateStr = toLocalDateStr(ds);
-          const blockCount = planner
-            .filter((e: any) => e.date === dateStr)
-            .reduce((s: number, e: any) => s + (e.time_blocks || []).filter((tb: any) => tb.done).length, 0);
           const x = i * 60 + 30;
-          const y = chartH - (total / maxVal) * chartH;
+          const y = chartH - (d.total / maxVal) * chartH;
+          const tagHours = TIME_BLOCK_TAGS
+            .map((tag) => ({ ...tag, hours: d.tags[tag.value] || 0 }))
+            .filter((tag) => tag.hours > 0)
+            .sort((a, b) => b.hours - a.hours);
           const pctX = (x / (data.length * 60)) * 100;
           const pctY = (y / chartH) * 100;
           return (
@@ -292,23 +317,29 @@ function ChartSection({ planner }: { planner: any[] }) {
                 bottom: `${100 - pctY}%`,
                 marginTop: -8,
               }}>
-              <div className="bg-[#0b1422]/95 backdrop-blur-md text-white text-[11px] rounded-xl shadow-2xl border border-cyan-300/20 ring-1 ring-white/5 min-w-[160px] overflow-hidden">
+              <div className="bg-[#0b1422]/95 backdrop-blur-md text-white text-[11px] rounded-xl shadow-2xl border border-cyan-300/20 ring-1 ring-white/5 min-w-[170px] overflow-hidden">
                 <div className="flex items-center justify-between gap-3 px-3.5 py-2 bg-gradient-to-r from-cyan-500/15 to-yellow-400/10 border-b border-white/10">
                   <span className="font-semibold text-cosmic-cyan text-xs uppercase tracking-wide">{labels[i]}</span>
-                  <span className="text-navy-300/50 text-[10px]">{total > 0 ? `${Math.round((total / totalHours) * 100)}% of period` : 'no hours'}</span>
+                  <span className="text-navy-300/50 text-[10px]">{d.total > 0 ? t('dashboard.pctOfPeriod', { pct: Math.round((d.total / totalHours) * 100) }) : t('dashboard.noHours')}</span>
                 </div>
                 <div className="px-3.5 py-2.5 space-y-1.5">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-cosmic-cyan" />Total</span>
-                    <span className="text-white font-semibold tabular-nums">{total.toFixed(1)}h</span>
+                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-cosmic-cyan" />{t('dashboard.total')}</span>
+                    <span className="text-white font-semibold tabular-nums">{d.total.toFixed(1)}h</span>
                   </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm bg-sky-400" />Work</span>
-                    <span className="text-cosmic-cyan tabular-nums font-medium">{d.work.toFixed(1)}h <span className="text-navy-400/60">· {blockCount}</span></span>
-                  </div>
-                  <div className="mt-1.5 flex h-1.5 w-full rounded-full overflow-hidden bg-white/5">
-                    <div className="h-full bg-gradient-to-r from-sky-400 to-cyan-500" style={{ width: '100%' }} />
-                  </div>
+                  {tagHours.map((tag) => (
+                    <div key={tag.value} className="flex items-center justify-between gap-4">
+                      <span className="flex items-center gap-1.5 text-navy-300/60"><span className="w-2 h-2 rounded-sm" style={{ backgroundColor: TAG_COLORS[tag.value] }} />{t('tag.' + tag.value)}</span>
+                      <span className="text-navy-200 tabular-nums">{tag.hours.toFixed(1)}h</span>
+                    </div>
+                  ))}
+                  {d.total > 0 && (
+                    <div className="mt-1.5 flex h-1.5 w-full rounded-full overflow-hidden bg-white/5">
+                      {tagHours.map((tag) => (
+                        <div key={tag.value} className="h-full" style={{ width: `${(tag.hours / d.total) * 100}%`, backgroundColor: TAG_COLORS[tag.value] }} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -328,14 +359,20 @@ function ChartSection({ planner }: { planner: any[] }) {
 
       {/* Legend + totals */}
       <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-cosmic-cyan" />
-            <span className="text-xs text-navy-200/60">Work hours</span>
+            <span className="text-xs text-navy-200/60">{t('dashboard.totalHoursLabel')}</span>
           </div>
+          {activeTags.map((tag) => (
+            <div key={tag.value} className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: TAG_COLORS[tag.value] }} />
+              <span className="text-xs text-navy-200/60">{t('tag.' + tag.value)}</span>
+            </div>
+          ))}
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-navy-200/60">{totalHours.toFixed(1)}h total</span>
+          <span className="text-navy-200/60">{t('dashboard.totalHours', { hours: totalHours.toFixed(1) })}</span>
         </div>
       </div>
     </div>
