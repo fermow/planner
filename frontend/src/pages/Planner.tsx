@@ -8,6 +8,7 @@ import { useStore } from '../store/useStore';
 import type { PlannerEntry, TimeBlock, TimeBlockTag } from '../types';
 import { TIME_BLOCK_TAGS } from '../types';
 import { useTranslation } from '../i18n/t';
+import { useMusicPlayer } from '../components/MusicPlayerProvider';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const today = new Date();
@@ -21,6 +22,7 @@ function formatTimeDisplay(date: Date): string {
 export default function PlannerPage() {
   const { t } = useTranslation();
   const { planner, fetchPlanner, addPlannerEntry, editPlannerEntry } = useStore();
+  const { currentTrack } = useMusicPlayer();
   const [weekOffset, setWeekOffset] = useState(0);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [dayNote, setDayNote] = useState('');
@@ -336,7 +338,9 @@ export default function PlannerPage() {
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-4 md:p-6 w-full max-w-2xl mx-0 md:mx-4 my-auto rounded-none md:rounded-2xl min-h-screen md:min-h-0"
+              className={`glass-card w-full max-w-2xl mx-0 md:mx-4 my-auto rounded-none md:rounded-2xl min-h-screen md:min-h-0 ${
+                currentTrack ? 'p-4 pb-40 md:p-6 md:pb-16' : 'p-4 pb-24 md:p-6 md:pb-8'
+              }`}
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-5">

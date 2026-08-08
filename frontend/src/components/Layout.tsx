@@ -9,6 +9,7 @@ import NotificationToast from './NotificationToast';
 import SearchModal from './SearchModal';
 import { useStore } from '../store/useStore';
 import { useClock } from '../hooks/useClock';
+import { useMusicPlayer } from './MusicPlayerProvider';
 import type { Page } from '../types';
 import { useTranslation } from '../i18n/t';
 import Dashboard from '../pages/Dashboard';
@@ -25,6 +26,7 @@ import CalendarPage from '../pages/Calendar';
 
 export default function Layout() {
   const { currentPage, setPage, toggleSearch, notifications, dismissNotification, sidebarOpen, toggleSidebar, setSidebarOpen, theme, toggleTheme } = useStore();
+  const { currentTrack } = useMusicPlayer();
   const unread = notifications.filter((n) => !n.read);
   const clock = useClock();
   const { t } = useTranslation();
@@ -74,7 +76,7 @@ export default function Layout() {
   // Remove the data-refetch effect — each page handles its own data loading
 
   return (
-    <div className="flex min-h-screen pb-16 md:pb-0">
+    <div className={`flex min-h-screen ${currentTrack ? 'pb-40 md:pb-24' : 'pb-16 md:pb-0'}`}>
       <Sidebar />
 
       {/* Mobile overlay */}

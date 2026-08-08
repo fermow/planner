@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music4, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Music4, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../i18n/t';
 import type { MusicTrack } from '../types';
@@ -259,6 +259,16 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
                     style={{ accentColor: '#40e0d0' }}
                   />
                 </div>
+
+                {/* Close / stop */}
+                <button
+                  onClick={stop}
+                  className="p-1.5 rounded-lg text-navy-300 hover:text-cosmic-rose hover:bg-white/5 transition-colors shrink-0"
+                  aria-label={t('music.close')}
+                  title={t('music.close')}
+                >
+                  <X size={16} />
+                </button>
               </div>
 
               {/* Mobile-only seek */}
