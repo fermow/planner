@@ -132,6 +132,8 @@ const en: Record<string, string> = {
   "planner.notesPlaceholder": "Notes for the day...",
   "tasks": "Tasks",
   "planner.addTask": "Add task",
+  "planner.taskTitle": "Task title",
+  "planner.taskDesc": "Description (optional)",
   "planner.noTasksYet": "No tasks yet. Click \"Add task\" to create one.",
   "planner.save": "Save Day",
   "planner.cancel": "Cancel",
