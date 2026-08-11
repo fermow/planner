@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music4, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
+import { Music4, Play, Pause, Repeat, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../i18n/t';
 import type { MusicTrack } from '../types';
@@ -10,12 +10,14 @@ interface MusicPlayerContextValue {
   currentTrack: MusicTrack | null;
   currentId: string | null;
   isPlaying: boolean;
+  isRepeat: boolean;
   currentTime: number;
   duration: number;
   volume: number;
   analyserRef: MutableRefObject<AnalyserNode | null>;
   playTrack: (id: string) => void;
   togglePlay: () => void;
+  toggleRepeat: () => void;
   nextTrack: () => void;
   prevTrack: () => void;
   seek: (time: number) => void;
@@ -41,6 +43,9 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
 
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(() => {
+    try { return localStorage.getItem('celestial-music-repeat') === '1'; } catch { return false; }
+  });
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(() => {
@@ -131,6 +136,12 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
     if (audioRef.current) audioRef.current.volume = v;
   }, []);
 
+  const toggleRepeat = useCallback(() => {
+    const next = !isRepeat;
+    setIsRepeat(next);
+    try { localStorage.setItem('celestial-music-repeat', next ? '1' : '0'); } catch {}
+  }, [isRepeat]);
+
   const stop = useCallback(() => {
     audioRef.current?.pause();
     setCurrentId(null);
@@ -147,12 +158,14 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
     currentTrack,
     currentId,
     isPlaying,
+    isRepeat,
     currentTime,
     duration,
     volume,
     analyserRef,
     playTrack,
     togglePlay,
+    toggleRepeat,
     nextTrack,
     prevTrack,
     seek,
@@ -173,7 +186,14 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
         onDurationChange={(e) => setDuration(e.currentTarget.duration)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onEnded={nextTrack}
+        onEnded={() => {
+          if (isRepeat && audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(() => {});
+          } else {
+            nextTrack();
+          }
+        }}
       />
 
       {/* Sticky player bar — visible on every page while a track is active */}
@@ -186,7 +206,16 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed bottom-16 left-0 right-0 z-40 px-2 pb-2 md:bottom-0 md:px-4 md:pb-3"
           >
-            <div className="glass-card max-w-3xl mx-auto p-2.5 md:p-3 shadow-2xl">
+            <div className="glass-card relative max-w-3xl mx-auto p-2.5 md:p-3 shadow-2xl">
+              {/* Close / stop — pinned to the top-right corner, raised above the bar */}
+              <button
+                onClick={stop}
+                className="absolute -top-2.5 -right-2 md:-top-3 md:-right-3 p-1 rounded-full bg-navy-900/90 border border-white/10 shadow-lg text-navy-300 hover:text-cosmic-rose hover:bg-navy-800 transition-colors z-10"
+                aria-label={t('music.close')}
+                title={t('music.close')}
+              >
+                <X size={14} />
+              </button>
               <div className="flex items-center gap-3">
                 {/* Cover + info */}
                 <div
@@ -245,6 +274,18 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
 
                 {/* Volume */}
                 <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={toggleRepeat}
+                    className={`p-1.5 rounded-lg transition-colors ${
+                      isRepeat
+                        ? 'text-cosmic-cyan bg-white/5'
+                        : 'text-navy-300 hover:text-white hover:bg-white/5'
+                    }`}
+                    aria-label={t('music.repeat')}
+                    title={t('music.repeat')}
+                  >
+                    <Repeat size={15} />
+                  </button>
                   <button onClick={() => changeVolume(volume > 0 ? 0 : 0.8)} className="p-1 text-navy-300 hover:text-white" aria-label="Volume">
                     {volume > 0 ? <Volume2 size={15} /> : <VolumeX size={15} />}
                   </button>
@@ -259,16 +300,6 @@ export default function MusicPlayerProvider({ children }: { children: ReactNode 
                     style={{ accentColor: '#40e0d0' }}
                   />
                 </div>
-
-                {/* Close / stop */}
-                <button
-                  onClick={stop}
-                  className="p-1.5 rounded-lg text-navy-300 hover:text-cosmic-rose hover:bg-white/5 transition-colors shrink-0"
-                  aria-label={t('music.close')}
-                  title={t('music.close')}
-                >
-                  <X size={16} />
-                </button>
               </div>
 
               {/* Mobile-only seek */}

@@ -435,6 +435,7 @@ const en: Record<string, string> = {
   "music.cancel": "Cancel",
   "music.unknownArtist": "Unknown artist",
   "music.close": "Close player",
+  "music.repeat": "Repeat",
   "music.added": "Track added",
   "music.updated": "Track updated",
   "music.removed": "Track removed",

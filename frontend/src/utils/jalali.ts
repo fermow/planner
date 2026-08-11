@@ -102,8 +102,8 @@ export function weekdaySatFirstCol(date: Date): number {
   return (date.getUTCDay() + 1) % 7;
 }
 
-export function weekdayFull(index: number): string {
-  return WEEKDAY_FULL[index % 7];
+export function weekdayFull(utcDay: number): string {
+  return WEEKDAY_FULL[(utcDay + 1) % 7];
 }
 
 // ─── Holidays ───
