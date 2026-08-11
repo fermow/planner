@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Sun, X, CalendarDays } from 'lucide-react';
 import { useClock } from '../hooks/useClock';
+import { api } from '../api/client';
 import {
   gregorianToPersian, dateHoliday, todayHoliday, toFaDigits,
   weekdayFull, weekdaySatFirstCol, PERSIAN_MONTHS, WEEKDAY_SHORT_SAT_FIRST,
@@ -28,13 +29,48 @@ const GRID: React.CSSProperties = {
   gap: 4,
 };
 
+interface LiveEvent {
+  m: number;
+  d: number;
+  title: string;
+  is_holiday: boolean;
+}
+
 export default function CalendarPage() {
   const today = useClock();
   const todayP = gregorianToPersian(today);
   const [year, setYear] = useState<number>(todayP.y);
   const [selected, setSelected] = useState<DayCell | null>(null);
 
-  const todayHoli = todayHoliday(today);
+  // Official holidays/occasions fetched live from the backend (time.ir).
+  const [liveEvents, setLiveEvents] = useState<Record<string, LiveEvent[]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getCalendarEvents(year).then((data) => {
+      if (cancelled) return;
+      setLiveEvents((prev) => ({ ...prev, [String(year)]: data }));
+    });
+    return () => { cancelled = true; };
+  }, [year]);
+
+  const liveLookup = useMemo(() => {
+    const map: Record<string, HolidayInfo> = {};
+    for (const y of Object.keys(liveEvents)) {
+      for (const ev of liveEvents[y] || []) {
+        if (ev.is_holiday) map[`${y}/${ev.m}/${ev.d}`] = { name: ev.title, lunar: false };
+      }
+    }
+    return map;
+  }, [liveEvents]);
+
+  const liveHoliday = useCallback(
+    (y: number, m: number, d: number): HolidayInfo | null =>
+      liveLookup[`${y}/${m}/${d}`] ?? null,
+    [liveLookup],
+  );
+
+  const todayHoli = liveHoliday(todayP.y, todayP.m, todayP.d) ?? todayHoliday(today);
   const currentYearIsToday = year === todayP.y;
 
   const months = useMemo(() => persianYearMonths(year), [year]);
@@ -46,7 +82,7 @@ export default function CalendarPage() {
       let cursor = mo.first;
       for (let k = 0; k < mo.days; k++) {
         const isToday = todayP.y === year && todayP.m === mo.month && todayP.d === k + 1;
-        const holiday = dateHoliday({ m: mo.month, d: k + 1 }, cursor);
+        const holiday = liveHoliday(year, mo.month, k + 1) ?? dateHoliday({ m: mo.month, d: k + 1 }, cursor);
         cells.push({
           d: k + 1,
           month: mo.month,
@@ -59,7 +95,7 @@ export default function CalendarPage() {
       }
       return { month: mo.month, name: mo.name, cells };
     });
-  }, [months, year, todayP.y]);
+  }, [months, year, todayP.y, liveHoliday]);
 
   // Upcoming unique holidays (from today forward)
   const upcoming = useMemo(() => {
@@ -67,8 +103,8 @@ export default function CalendarPage() {
     const seen = new Set<string>();
     for (let i = 0; i < 390; i++) {
       const d = addDays(today, i);
-      const p = { m: gregorianToPersian(d).m, d: gregorianToPersian(d).d };
-      const hol = dateHoliday(p, d);
+      const p = gregorianToPersian(d);
+      const hol = liveHoliday(p.y, p.m, p.d) ?? dateHoliday(p, d);
       if (hol && !seen.has(hol.name)) {
         seen.add(hol.name);
         list.push({ m: p.m, d: p.d, name: hol.name, lunar: hol.lunar });
@@ -76,7 +112,7 @@ export default function CalendarPage() {
       if (list.length >= 12) break;
     }
     return list;
-  }, [today]);
+  }, [today, liveHoliday]);
 
   return (
     <div

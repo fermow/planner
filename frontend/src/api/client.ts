@@ -106,4 +106,8 @@ export const api = {
   },
   updateMusic: (id: string, data: any) => request<any>(`/music/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteMusic: (id: string) => request<any>(`/music/${id}`, { method: 'DELETE' }),
+
+  // Calendar (official Iranian holidays from time.ir)
+  getCalendarEvents: (year: number) =>
+    request<any[]>(`/calendar/events?year=${year}`).catch(() => []),
 };
