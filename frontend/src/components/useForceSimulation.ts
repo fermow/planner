@@ -25,13 +25,17 @@ export interface SimEdge {
 
 const REPULSION_STRENGTH = 100;
 const SPRING_STRENGTH = 0.1;
-const CENTER_STRENGTH = 0.05;
+const CENTER_STRENGTH = 0.002;
 const DAMPING = 0.85;
 const BOUNDARY_STRENGTH = 0.2;
 const ALPHA_DECAY = 0.97;
 const ALPHA_MIN = 0.005;
 const NODE_RADIUS = 24;
 const ME_RADIUS = 34;
+// A saved position this close to the "me" node is treated as a collapsed
+// (invalid) position, so the node is left free to be re-laid-out instead of
+// being pinned on top of the profile. The me node has radius 34.
+const MIN_SAVED_DIST = 100;
 
 export interface SimulationHandle {
   getNodes: () => SimNode[];
@@ -73,15 +77,21 @@ export function useForceSimulation(
       if (existing) {
         node = { ...existing, connectionId: conn.id };
       } else {
+        const cx = conn.x;
+        const cy = conn.y;
         let x: number, y: number;
-        if (conn.x != null && conn.y != null) {
-          x = conn.x; y = conn.y;
+        let pinned: boolean;
+        if (cx != null && cy != null) {
+          x = cx;
+          y = cy;
+          pinned = Math.hypot(cx, cy) >= MIN_SAVED_DIST;
         } else {
           const count = Math.max(connections.length, 1);
           const angle = (2 * Math.PI * i) / count + i * 0.5;
           const r = 180 + Math.random() * 40;
           x = Math.cos(angle) * r + (Math.random() - 0.5) * 30;
           y = Math.sin(angle) * r + (Math.random() - 0.5) * 30;
+          pinned = false;
         }
         node = {
           id: conn.id,
@@ -89,7 +99,7 @@ export function useForceSimulation(
           connectionId: conn.id,
           x, y, vx: 0, vy: 0, fx: 0, fy: 0,
           fixed: false,
-          pinned: !(conn.x != null && conn.y != null),
+          pinned,
           radius: NODE_RADIUS,
         };
       }
