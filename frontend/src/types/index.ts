@@ -93,6 +93,7 @@ export interface Notification {
   id: string;
   title: string;
   type: string;
+  message?: string;
   timestamp: string;
   read: boolean;
 }
@@ -248,4 +249,3 @@ export type Page =
   | 'connections'
   | 'music'
   | 'calendar';
-

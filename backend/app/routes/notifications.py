@@ -24,5 +24,5 @@ def read_notification(notification_id: str):
 @router.post("/test")
 def test_notification(title: str = Query("Celestial Desk Test"), message: str = Query("If you see this, notifications work!")):
     ok = send_notification(title, message, "critical")
-    log_notification(uuid.uuid4().hex[:8], title, "test")
+    log_notification(uuid.uuid4().hex[:8], title, "test", message)
     return {"sent": ok, "title": title, "message": message}

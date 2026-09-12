@@ -21,6 +21,24 @@ scheduler = AsyncIOScheduler(timezone=settings.TZ)
 CHECK_INTERVAL_MINUTES = 1
 
 
+def _deliver_deadline_notification(
+    deadline: dict,
+    title: str,
+    message: str,
+    check_type: str,
+    urgency: str,
+    flag: str | None = None,
+) -> None:
+    """Send native notification and always retain a browser/in-app fallback."""
+    native_sent = send_notification(title, message, urgency)
+    log_notification(deadline["id"], title, check_type, message)
+    if flag:
+        storage.update("deadlines", deadline["id"], {flag: True})
+
+    channel = "native" if native_sent else "browser/in-app fallback"
+    logger.info("Recorded %s notification for %s via %s", check_type, deadline["title"], channel)
+
+
 def _parse_iso(due_str: str) -> datetime:
     """Parse ISO datetime string, handling both 'Z' and '+00:00' suffixes."""
     if due_str.endswith("Z"):
@@ -62,18 +80,16 @@ def _check_deadline_notifications() -> None:
                 title = f"Deadline: {dl['title']}"
                 time_left = f"{hours_before} hour(s)" if hours_before < 24 else f"{hours_before // 24} day(s)"
                 message = f"Due in {time_left}! {dl.get('description', '')}"
-                success = send_notification(title, message, urgency)
-                if success:
-                    storage.update("deadlines", dl["id"], {flag: True})
-                    log_notification(dl["id"], dl["title"], check_type)
-                    logger.info(f"Sent {check_type} notification for: {dl['title']}")
+                _deliver_deadline_notification(dl, title, message, check_type, urgency, flag)
 
         if diff_hours <= 0 and dl.get("status") != "overdue":
             storage.update("deadlines", dl["id"], {"status": "overdue"})
             if not dl.get("reminded_1h", False):
-                send_notification(
+                _deliver_deadline_notification(
+                    dl,
                     f"Deadline Missed: {dl['title']}",
                     f"Was due at {dl['due_date']}",
+                    "overdue",
                     "critical",
                 )
 
@@ -105,9 +121,8 @@ async def startup_catch_up() -> None:
             title = f"⚠ Urgent: {dl['title']}"
             hours_left = int(diff_hours)
             message = f"Due in {hours_left}h! {dl.get('description', '')}"
-            send_notification(title, message, "critical")
-            log_notification(dl["id"], dl["title"], "startup_urgent")
-            logger.info(f"Sent startup urgent notification for: {dl['title']} (due in {hours_left}h)")
+            _deliver_deadline_notification(dl, title, message, "startup_urgent", "critical")
+            logger.info(f"Recorded startup urgent notification for: {dl['title']} (due in {hours_left}h)")
 
         # Check specific missed windows for non-urgent deadlines
         checks = [
@@ -126,17 +141,11 @@ async def startup_catch_up() -> None:
             if check_type == "overdue" and diff_hours <= 0:
                 title = f"Overdue: {dl['title']}"
                 message = f"Was due at {dl['due_date']}"
-                send_notification(title, message, urgency)
-                log_notification(dl["id"], dl["title"], check_type)
-                if flag:
-                    storage.update("deadlines", dl["id"], {flag: True})
+                _deliver_deadline_notification(dl, title, message, check_type, urgency, flag)
             elif lower < diff_hours <= upper and flag is not None:
                 title = f"Missed Notice: {dl['title']}"
                 message = f"Deadline is within {hours_before} hour(s)! Was due at {dl['due_date']}"
-                send_notification(title, message, urgency)
-                log_notification(dl["id"], dl["title"], f"catch_up_{check_type}")
-                if flag:
-                    storage.update("deadlines", dl["id"], {flag: True})
+                _deliver_deadline_notification(dl, title, message, f"catch_up_{check_type}", urgency, flag)
 
 
 def _generate_end_of_day_summary() -> None:

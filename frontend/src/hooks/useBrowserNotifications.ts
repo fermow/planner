@@ -29,12 +29,13 @@ export function useBrowserNotifications() {
     for (const n of notifications) {
       if (n.read || firedRef.current.has(n.id)) continue;
       firedRef.current.add(n.id);
-      if (document.visibilityState === 'hidden' || document.hasFocus?.() === false) {
-        try {
-          new Notification(n.title, { body: n.type });
-        } catch {
-          // Some environments block constructing notifications.
-        }
+      try {
+        new Notification(n.title, {
+          body: n.message || n.type,
+          tag: `celestial-deadline-${n.id}`,
+        });
+      } catch {
+        // Some environments block constructing notifications.
       }
     }
   }, [notifications]);
