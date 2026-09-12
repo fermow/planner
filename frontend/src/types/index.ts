@@ -81,6 +81,13 @@ export interface ResearchDocument {
   tags: string[];
   direction: 'auto' | 'ltr' | 'rtl';
   status: 'draft' | 'review' | 'final';
+  template: 'simple' | 'paper' | 'proposal' | 'results';
+  table_headers: string[];
+  table_rows: string[][];
+  page_size: 'a4' | 'letter';
+  page_margin: 'normal' | 'narrow' | 'wide';
+  header_text: string;
+  footer_text: string;
   created_at: string;
   updated_at: string;
 }
@@ -95,6 +102,13 @@ export interface ResearchDocumentRevision {
   tags: string[];
   direction: 'auto' | 'ltr' | 'rtl';
   status: 'draft' | 'review' | 'final';
+  template: 'simple' | 'paper' | 'proposal' | 'results';
+  table_headers: string[];
+  table_rows: string[][];
+  page_size: 'a4' | 'letter';
+  page_margin: 'normal' | 'narrow' | 'wide';
+  header_text: string;
+  footer_text: string;
   created_at: string;
 }
 

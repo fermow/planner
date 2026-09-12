@@ -18,6 +18,13 @@ class ResearchDocument(BaseModel):
     tags: list[str] = Field(default_factory=list)
     direction: Literal["auto", "ltr", "rtl"] = "auto"
     status: Literal["draft", "review", "final"] = "draft"
+    template: Literal["simple", "paper", "proposal", "results"] = "simple"
+    table_headers: list[str] = Field(default_factory=lambda: ["Variable", "Value", "Notes"])
+    table_rows: list[list[str]] = Field(default_factory=lambda: [["", "", ""]])
+    page_size: Literal["a4", "letter"] = "a4"
+    page_margin: Literal["normal", "narrow", "wide"] = "normal"
+    header_text: str = ""
+    footer_text: str = ""
     created_at: str = Field(default_factory=now_iso)
     updated_at: str = Field(default_factory=now_iso)
 
@@ -30,6 +37,13 @@ class ResearchDocumentCreate(BaseModel):
     tags: list[str] = Field(default_factory=list)
     direction: Literal["auto", "ltr", "rtl"] = "auto"
     status: Literal["draft", "review", "final"] = "draft"
+    template: Literal["simple", "paper", "proposal", "results"] = "simple"
+    table_headers: list[str] = Field(default_factory=lambda: ["Variable", "Value", "Notes"])
+    table_rows: list[list[str]] = Field(default_factory=lambda: [["", "", ""]])
+    page_size: Literal["a4", "letter"] = "a4"
+    page_margin: Literal["normal", "narrow", "wide"] = "normal"
+    header_text: str = ""
+    footer_text: str = ""
 
 
 class ResearchDocumentUpdate(BaseModel):
@@ -40,6 +54,13 @@ class ResearchDocumentUpdate(BaseModel):
     tags: Optional[list[str]] = None
     direction: Optional[Literal["auto", "ltr", "rtl"]] = None
     status: Optional[Literal["draft", "review", "final"]] = None
+    template: Optional[Literal["simple", "paper", "proposal", "results"]] = None
+    table_headers: Optional[list[str]] = None
+    table_rows: Optional[list[list[str]]] = None
+    page_size: Optional[Literal["a4", "letter"]] = None
+    page_margin: Optional[Literal["normal", "narrow", "wide"]] = None
+    header_text: Optional[str] = None
+    footer_text: Optional[str] = None
 
 
 class ResearchDocumentRevision(BaseModel):
@@ -52,4 +73,11 @@ class ResearchDocumentRevision(BaseModel):
     tags: list[str] = Field(default_factory=list)
     direction: Literal["auto", "ltr", "rtl"] = "auto"
     status: Literal["draft", "review", "final"] = "draft"
+    template: Literal["simple", "paper", "proposal", "results"] = "simple"
+    table_headers: list[str] = Field(default_factory=list)
+    table_rows: list[list[str]] = Field(default_factory=list)
+    page_size: Literal["a4", "letter"] = "a4"
+    page_margin: Literal["normal", "narrow", "wide"] = "normal"
+    header_text: str = ""
+    footer_text: str = ""
     created_at: str = Field(default_factory=now_iso)
