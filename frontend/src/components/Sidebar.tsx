@@ -30,7 +30,7 @@ export default function Sidebar({ desktopOpen = true }: { desktopOpen?: boolean 
   return (
     <>
       {/* Desktop sidebar — always visible */}
-      <aside className={`${desktopOpen ? 'hidden md:flex' : 'hidden'} fixed left-0 top-0 h-screen w-56 z-40 glass-card rounded-none border-l-0 border-t-0 border-b-0 flex-col`}>
+      <aside className={`${desktopOpen ? 'hidden xl:flex' : 'hidden'} fixed left-0 top-0 h-screen w-56 z-40 glass-card rounded-none border-l-0 border-t-0 border-b-0 flex-col`}>
         <div className="flex items-center gap-2 px-5 h-16 border-b border-white/5">
           <span className="text-xl">{theme === 'kawaii' ? '🎀' : '⭐'}</span>
           <span className={`text-lg font-display font-semibold bg-gradient-to-r bg-clip-text text-transparent ${
@@ -81,7 +81,7 @@ export default function Sidebar({ desktopOpen = true }: { desktopOpen?: boolean 
         initial={false}
         animate={{ x: sidebarOpen ? 0 : '-100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-        className="md:hidden fixed left-0 top-0 h-full w-64 z-50 glass-card rounded-none border-l-0 border-t-0 border-b-0 flex flex-col shadow-2xl"
+        className="xl:hidden fixed left-0 top-0 h-full w-72 max-w-[86vw] z-50 glass-card rounded-none border-l-0 border-t-0 border-b-0 flex flex-col shadow-2xl"
       >
         <div className="flex items-center justify-between px-5 h-14 border-b border-white/5">
           <div className="flex items-center gap-2">
