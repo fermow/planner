@@ -8,7 +8,7 @@ router = APIRouter(prefix="/api/research-documents", tags=["research_documents"]
 
 COLLECTION = "research_documents"
 REVISION_COLLECTION = "research_document_revisions"
-REVISION_FIELDS = ("title", "abstract", "content", "references", "tags", "direction", "status", "template", "table_headers", "table_rows", "page_size", "page_margin", "header_text", "footer_text", "citation_style", "show_toc")
+REVISION_FIELDS = ("title", "abstract", "content", "references", "tags", "direction", "status", "template", "table_headers", "table_rows", "page_size", "page_margin", "header_text", "footer_text", "citation_style", "show_toc", "author_name", "affiliation")
 
 
 def save_revision(document: dict):

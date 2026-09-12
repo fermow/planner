@@ -18,15 +18,16 @@ import { useStore } from '../store/useStore';
 import './ResearchWord.css';
 
 type WordTheme = 'dark' | 'paper' | 'light';
-const blank = (): Omit<ResearchDocument, 'id' | 'created_at' | 'updated_at'> => ({ title: 'Untitled research note', abstract: '', content: '', references: [], tags: [], direction: 'auto', status: 'draft', template: 'simple', table_headers: ['Variable', 'Value', 'Notes'], table_rows: [['', '', '']], page_size: 'a4', page_margin: 'normal', header_text: '', footer_text: '', citation_style: 'apa', show_toc: false });
+const blank = (): Omit<ResearchDocument, 'id' | 'created_at' | 'updated_at'> => ({ title: 'Untitled research note', abstract: '', content: '', references: [], tags: [], direction: 'auto', status: 'draft', template: 'simple', table_headers: ['Variable', 'Value', 'Notes'], table_rows: [['', '', '']], page_size: 'a4', page_margin: 'normal', header_text: '', footer_text: '', citation_style: 'apa', show_toc: false, author_name: '', affiliation: '' });
 const plain = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim();
-const stamp = (d: ResearchDocument) => JSON.stringify({ title: d.title, abstract: d.abstract, content: d.content, references: d.references, tags: d.tags, direction: d.direction, status: d.status, template: d.template, table_headers: d.table_headers, table_rows: d.table_rows, page_size: d.page_size, page_margin: d.page_margin, header_text: d.header_text, footer_text: d.footer_text, citation_style: d.citation_style, show_toc: d.show_toc });
+const stamp = (d: ResearchDocument) => JSON.stringify({ title: d.title, abstract: d.abstract, content: d.content, references: d.references, tags: d.tags, direction: d.direction, status: d.status, template: d.template, table_headers: d.table_headers, table_rows: d.table_rows, page_size: d.page_size, page_margin: d.page_margin, header_text: d.header_text, footer_text: d.footer_text, citation_style: d.citation_style, show_toc: d.show_toc, author_name: d.author_name, affiliation: d.affiliation });
 const templateBody: Record<ResearchDocument['template'], string> = {
   simple: '<p></p>',
   paper: '<h1>Introduction</h1><p></p><h2>Methodology</h2><p></p><h2>Results</h2><p></p><h2>Discussion</h2><p></p><h2>Conclusion</h2><p></p>',
   proposal: '<h1>Problem statement</h1><p></p><h2>Research objectives</h2><p></p><h2>Methodology</h2><p></p><h2>Timeline</h2><p></p><h2>Expected outcomes</h2><p></p><h2>Budget</h2><p></p>',
   results: '<h1>Results summary</h1><p>Describe the main findings and interpretation of the table below.</p>',
 };
+const paperSections = ['Introduction', 'Related Work', 'Methodology', 'Materials and Methods', 'Results', 'Discussion', 'Conclusion', 'Limitations', 'Acknowledgements', 'Appendix'];
 const Typography = Extension.create({
   name: 'typography',
   addGlobalAttributes() { return [
@@ -193,8 +194,28 @@ export default function ResearchWordPage() {
     const root = window.document.querySelector('.research-word');
     if (!root || !draft) return;
     root.classList.toggle('template-simple', draft.template === 'simple');
-    return () => root.classList.remove('template-simple');
+    root.classList.toggle('template-paper', draft.template === 'paper');
+    return () => { root.classList.remove('template-simple'); root.classList.remove('template-paper'); };
   }, [draft?.template]);
+  useEffect(() => {
+    const page = window.document.querySelector('.research-word .word-page');
+    if (!page || draft?.template !== 'paper') return;
+    const meta = window.document.createElement('div'); meta.className = 'paper-meta';
+    const field = (key: 'author_name' | 'affiliation', placeholder: string) => { const input = window.document.createElement('input'); input.value = draft[key]; input.placeholder = placeholder; input.oninput = () => update({ [key]: input.value }); return input; };
+    meta.append(field('author_name', 'Author name'), field('affiliation', 'Institution · Department · email'));
+    const title = page.querySelector('.word-title'); if (title) title.after(meta); else page.prepend(meta);
+    return () => meta.remove();
+  }, [draft]);
+  useEffect(() => {
+    const target = window.document.querySelector('.research-word section > header > div:last-child');
+    if (!target || draft?.template !== 'paper') return;
+    const trigger = window.document.createElement('button'); trigger.type = 'button'; trigger.className = 'paper-sections-trigger'; trigger.textContent = 'Sections';
+    const panel = window.document.createElement('aside'); panel.className = 'paper-sections-panel'; const heading = window.document.createElement('strong'); heading.textContent = 'Paper sections'; panel.append(heading);
+    const addSection = (name: string) => update({ content: `${draft.content}<h2>${name}</h2><p></p>` });
+    paperSections.forEach((name) => { const button = window.document.createElement('button'); button.textContent = `+ ${name}`; button.onclick = () => addSection(name); panel.append(button); });
+    const current = new DOMParser().parseFromString(draft.content, 'text/html').querySelectorAll('h1,h2,h3'); if (current.length) { const sub = window.document.createElement('small'); sub.textContent = 'Current sections · click to remove'; panel.append(sub); current.forEach((node) => { const name = node.textContent?.trim() || 'Untitled section'; const button = window.document.createElement('button'); button.className = 'remove-section'; button.textContent = `− ${name}`; button.onclick = () => { const root = new DOMParser().parseFromString(draft.content, 'text/html').body; const targets = Array.from(root.querySelectorAll('h1,h2,h3')); const found = targets.find((item) => item.textContent?.trim() === name); if (!found) return; let next = found.nextElementSibling; found.remove(); while (next && !/^H[1-3]$/.test(next.tagName)) { const remove = next; next = next.nextElementSibling; remove.remove(); } update({ content: root.innerHTML }); }; panel.append(button); }); }
+    trigger.onclick = () => panel.classList.toggle('open'); target.prepend(trigger); window.document.body.append(panel); return () => { trigger.remove(); panel.remove(); };
+  }, [draft]);
   const refs = draft?.references.join('\n') || '', tags = draft?.tags.join(', ') || '';
   return <div className={`research-word word-theme-${theme} h-[calc(100vh-7rem)] min-h-[620px] overflow-hidden rounded-2xl border border-white/10 shadow-2xl`}><div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)]">
     <aside className="flex min-h-0 flex-col border-b border-white/10 lg:border-b-0 lg:border-r"><div className="border-b border-white/10 p-4"><div className="mb-4 flex items-center justify-between"><div className="flex gap-2"><BookMarked className="text-cosmic-cyan" size={20} /><div><p className="text-sm font-semibold">Research Word</p><p className="text-[10px] opacity-60">writing workspace</p></div></div><button onClick={() => void create()} className="grid h-9 w-9 place-items-center rounded-xl bg-cosmic-cyan text-navy-950" title="New document"><FilePlus2 size={16} /></button></div><label className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2"><Search size={14} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search papers" className="min-w-0 flex-1 bg-transparent text-xs outline-none" /></label></div><div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">{docs.map((item) => <button key={item.id} onClick={() => select(item)} className={`w-full rounded-xl p-3 text-left ${item.id === id ? 'bg-cosmic-cyan/15' : 'hover:bg-white/5'}`}><div className="flex gap-2"><FileText size={14} className="mt-0.5 shrink-0 text-cosmic-cyan" /><div className="min-w-0"><p className="truncate text-xs font-medium">{item.title}</p><p className="mt-1 line-clamp-2 text-[10px] opacity-55">{item.abstract || plain(item.content) || 'No content yet'}</p></div></div></button>)}</div></aside>
