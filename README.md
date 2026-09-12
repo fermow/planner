@@ -1,6 +1,6 @@
 # ✦ Celestial Desk
 
-**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, Shamsi calendar, journal, boards, life goals, favorite music, all behind a dreamy "Starry Night" interface.
+**A beautiful, self-hosted productivity suite** — deadlines, weekly planner, Shamsi calendar, journal, boards, life goals, music, and a full research-writing workspace, all behind a dreamy "Starry Night" interface.
 
 > *"What makes the desert beautiful,' said the little prince, 'is that somewhere it hides a well."*
 > — Antoine de Saint-Exupéry, *The Little Prince*
@@ -99,6 +99,15 @@ Open **http://localhost:3030** — done.
 - Mood picker and Markdown support
 - Full journal history with date navigation
 
+### 📝 Research Word — new in v1.2
+
+- Rich-text research workspace with Persian/English RTL-LTR writing, typography controls, headings, lists, quotes, find/replace and page breaks
+- Ready-made **Simple Note**, **Academic Paper**, **Research Proposal**, and **Results Table** templates
+- Autosave, persistent version history, and one-click restore points
+- A4/Letter pages, margin presets, editable headers/footers, print-ready PDF output and DOCX import/export
+- APA, IEEE and Chicago bibliography styles, a source picker, and an automatic table of contents generated from headings
+- Responsive, distraction-free workspace: the app sidebar can collapse while you write and the document adapts across mobile, tablet and desktop screens
+
 ### 🗓️ Shamsi Calendar
 
 ![Calendar](docs/screenshots/calendar.png)
@@ -190,7 +199,8 @@ Open **http://localhost:3030** — done.
 │   http://localhost:8000  ·  docs at /docs                  │
 │   Routes: deadlines, planner, journal, boards, tables,     │
 │   whiteboards, habits, life-tree, connections, music,      │
-│   reports, daily-summary, search, backup                   │
+│   reports, research-documents, daily-summary, search,      │
+│   backup                                                    │
 └──────────────┬────────────────────────────────────────────┘
                │
 ┌──────────────▼────────────────────────────────────────────┐
