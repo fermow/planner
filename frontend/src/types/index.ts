@@ -88,6 +88,7 @@ export interface ResearchDocument {
   page_margin: 'normal' | 'narrow' | 'wide';
   header_text: string;
   footer_text: string;
+  citation_style: 'apa' | 'ieee' | 'chicago';
   created_at: string;
   updated_at: string;
 }
@@ -109,6 +110,7 @@ export interface ResearchDocumentRevision {
   page_margin: 'normal' | 'narrow' | 'wide';
   header_text: string;
   footer_text: string;
+  citation_style: 'apa' | 'ieee' | 'chicago';
   created_at: string;
 }
 

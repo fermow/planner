@@ -25,6 +25,7 @@ class ResearchDocument(BaseModel):
     page_margin: Literal["normal", "narrow", "wide"] = "normal"
     header_text: str = ""
     footer_text: str = ""
+    citation_style: Literal["apa", "ieee", "chicago"] = "apa"
     created_at: str = Field(default_factory=now_iso)
     updated_at: str = Field(default_factory=now_iso)
 
@@ -44,6 +45,7 @@ class ResearchDocumentCreate(BaseModel):
     page_margin: Literal["normal", "narrow", "wide"] = "normal"
     header_text: str = ""
     footer_text: str = ""
+    citation_style: Literal["apa", "ieee", "chicago"] = "apa"
 
 
 class ResearchDocumentUpdate(BaseModel):
@@ -61,6 +63,7 @@ class ResearchDocumentUpdate(BaseModel):
     page_margin: Optional[Literal["normal", "narrow", "wide"]] = None
     header_text: Optional[str] = None
     footer_text: Optional[str] = None
+    citation_style: Optional[Literal["apa", "ieee", "chicago"]] = None
 
 
 class ResearchDocumentRevision(BaseModel):
@@ -80,4 +83,5 @@ class ResearchDocumentRevision(BaseModel):
     page_margin: Literal["normal", "narrow", "wide"] = "normal"
     header_text: str = ""
     footer_text: str = ""
+    citation_style: Literal["apa", "ieee", "chicago"] = "apa"
     created_at: str = Field(default_factory=now_iso)

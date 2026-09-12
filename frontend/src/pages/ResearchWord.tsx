@@ -18,9 +18,9 @@ import { useStore } from '../store/useStore';
 import './ResearchWord.css';
 
 type WordTheme = 'dark' | 'paper' | 'light';
-const blank = (): Omit<ResearchDocument, 'id' | 'created_at' | 'updated_at'> => ({ title: 'Untitled research note', abstract: '', content: '', references: [], tags: [], direction: 'auto', status: 'draft', template: 'simple', table_headers: ['Variable', 'Value', 'Notes'], table_rows: [['', '', '']], page_size: 'a4', page_margin: 'normal', header_text: '', footer_text: '' });
+const blank = (): Omit<ResearchDocument, 'id' | 'created_at' | 'updated_at'> => ({ title: 'Untitled research note', abstract: '', content: '', references: [], tags: [], direction: 'auto', status: 'draft', template: 'simple', table_headers: ['Variable', 'Value', 'Notes'], table_rows: [['', '', '']], page_size: 'a4', page_margin: 'normal', header_text: '', footer_text: '', citation_style: 'apa' });
 const plain = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim();
-const stamp = (d: ResearchDocument) => JSON.stringify({ title: d.title, abstract: d.abstract, content: d.content, references: d.references, tags: d.tags, direction: d.direction, status: d.status, template: d.template, table_headers: d.table_headers, table_rows: d.table_rows, page_size: d.page_size, page_margin: d.page_margin, header_text: d.header_text, footer_text: d.footer_text });
+const stamp = (d: ResearchDocument) => JSON.stringify({ title: d.title, abstract: d.abstract, content: d.content, references: d.references, tags: d.tags, direction: d.direction, status: d.status, template: d.template, table_headers: d.table_headers, table_rows: d.table_rows, page_size: d.page_size, page_margin: d.page_margin, header_text: d.header_text, footer_text: d.footer_text, citation_style: d.citation_style });
 const templateBody: Record<ResearchDocument['template'], string> = {
   simple: '<p></p>',
   paper: '<h1>Introduction</h1><p></p><h2>Methodology</h2><p></p><h2>Results</h2><p></p><h2>Discussion</h2><p></p><h2>Conclusion</h2><p></p>',
@@ -122,6 +122,20 @@ export default function ResearchWordPage() {
     const size = new Option(draft.page_size === 'a4' ? 'A4' : 'Letter', draft.page_size); const select = window.document.createElement('select'); select.add(size); select.add(new Option(draft.page_size === 'a4' ? 'Letter' : 'A4', draft.page_size === 'a4' ? 'letter' : 'a4')); select.onchange = () => update({ page_size: select.value as ResearchDocument['page_size'] }); controls.append(select);
     const margin = window.document.createElement('select'); ['normal', 'narrow', 'wide'].forEach((v) => { const option = new Option(v, v); option.selected = draft.page_margin === v; margin.add(option); }); margin.onchange = () => update({ page_margin: margin.value as ResearchDocument['page_margin'] }); controls.append(margin); target.prepend(controls);
     return () => controls.remove();
+  }, [draft]);
+  useEffect(() => {
+    const target = window.document.querySelector('.research-word header > div:first-child');
+    if (!target || !draft) return;
+    const controls = window.document.createElement('label'); controls.className = 'word-citation-picker'; controls.textContent = 'Citations ';
+    const style = window.document.createElement('select'); ['apa', 'ieee', 'chicago'].forEach((value) => { const option = new Option(value.toUpperCase(), value); option.selected = draft.citation_style === value; style.add(option); }); style.onchange = () => update({ citation_style: style.value as ResearchDocument['citation_style'] }); controls.append(style);
+    const add = window.document.createElement('button'); add.type = 'button'; add.textContent = '+ Source'; add.onclick = () => { const source = window.prompt('Paste the complete source or DOI/URL'); if (source?.trim()) update({ references: [...draft.references, source.trim()] }); }; controls.append(add); target.prepend(controls);
+    return () => controls.remove();
+  }, [draft]);
+  useEffect(() => {
+    const textarea = window.document.querySelector<HTMLTextAreaElement>('.research-word textarea[placeholder="One source per line"]');
+    if (!textarea || !draft) return;
+    const preview = window.document.createElement('ol'); preview.className = `citation-preview citation-${draft.citation_style}`;
+    draft.references.forEach((reference, index) => { const item = window.document.createElement('li'); item.textContent = draft.citation_style === 'ieee' ? `[${index + 1}] ${reference}` : reference; preview.append(item); }); textarea.after(preview); return () => preview.remove();
   }, [draft]);
   useEffect(() => {
     const target = window.document.querySelector('.research-word header > div:first-child');
