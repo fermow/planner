@@ -31,6 +31,12 @@ export const api = {
   updateJournalEntry: (id: string, data: any) => request<any>(`/journal/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteJournalEntry: (id: string) => request<any>(`/journal/${id}`, { method: 'DELETE' }),
 
+  // Research Word
+  getResearchDocuments: () => request<any[]>('/research-documents'),
+  createResearchDocument: (data: any) => request<any>('/research-documents', { method: 'POST', body: JSON.stringify(data) }),
+  updateResearchDocument: (id: string, data: any) => request<any>(`/research-documents/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteResearchDocument: (id: string) => request<any>(`/research-documents/${id}`, { method: 'DELETE' }),
+
   // Tables
   getTables: () => request<any[]>('/tables'),
   createTable: () => request<any>('/tables', { method: 'POST' }),

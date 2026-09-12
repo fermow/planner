@@ -72,6 +72,19 @@ export interface JournalEntry {
   updated_at: string;
 }
 
+export interface ResearchDocument {
+  id: string;
+  title: string;
+  abstract: string;
+  content: string;
+  references: string[];
+  tags: string[];
+  direction: 'auto' | 'ltr' | 'rtl';
+  status: 'draft' | 'review' | 'final';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TableData {
   id: string;
   title: string;
@@ -242,6 +255,7 @@ export type Page =
   | 'deadlines'
   | 'planner'
   | 'journal'
+  | 'research-word'
   | 'boards'
   | 'settings'
   | 'reports'
