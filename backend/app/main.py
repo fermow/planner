@@ -25,6 +25,7 @@ from app.routes import (
     connection,
     music,
     calendar,
+    research_documents,
 )
 from app.scheduler.notification_scheduler import (
     start_scheduler,
@@ -78,6 +79,7 @@ app.include_router(habits.router)
 app.include_router(life_tree.router)
 app.include_router(connection.router)
 app.include_router(music.router)
+app.include_router(research_documents.router)
 app.include_router(calendar.router)
 
 
