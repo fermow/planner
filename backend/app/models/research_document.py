@@ -40,3 +40,16 @@ class ResearchDocumentUpdate(BaseModel):
     tags: Optional[list[str]] = None
     direction: Optional[Literal["auto", "ltr", "rtl"]] = None
     status: Optional[Literal["draft", "review", "final"]] = None
+
+
+class ResearchDocumentRevision(BaseModel):
+    id: str = Field(default_factory=new_id)
+    document_id: str
+    title: str
+    abstract: str = ""
+    content: str = ""
+    references: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    direction: Literal["auto", "ltr", "rtl"] = "auto"
+    status: Literal["draft", "review", "final"] = "draft"
+    created_at: str = Field(default_factory=now_iso)

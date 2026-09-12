@@ -85,6 +85,19 @@ export interface ResearchDocument {
   updated_at: string;
 }
 
+export interface ResearchDocumentRevision {
+  id: string;
+  document_id: string;
+  title: string;
+  abstract: string;
+  content: string;
+  references: string[];
+  tags: string[];
+  direction: 'auto' | 'ltr' | 'rtl';
+  status: 'draft' | 'review' | 'final';
+  created_at: string;
+}
+
 export interface TableData {
   id: string;
   title: string;
