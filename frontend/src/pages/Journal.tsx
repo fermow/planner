@@ -100,19 +100,19 @@ export default function JournalPage() {
             {currentEntry.what_i_did && (
               <div>
                 <h4 className="text-xs uppercase tracking-wider text-navy-200/40 mb-1">{t('journal.whatIdid')}</h4>
-                <p className="text-sm text-navy-100 whitespace-pre-wrap">{currentEntry.what_i_did}</p>
+                <p dir="auto" className="journal-text text-sm text-navy-100 whitespace-pre-wrap">{currentEntry.what_i_did}</p>
               </div>
             )}
             {currentEntry.plans && (
               <div>
                 <h4 className="text-xs uppercase tracking-wider text-navy-200/40 mb-1">{t('journal.plans')}</h4>
-                <p className="text-sm text-navy-100 whitespace-pre-wrap">{currentEntry.plans}</p>
+                <p dir="auto" className="journal-text text-sm text-navy-100 whitespace-pre-wrap">{currentEntry.plans}</p>
               </div>
             )}
             {currentEntry.reflection && (
               <div>
                 <h4 className="text-xs uppercase tracking-wider text-navy-200/40 mb-1">{t('journal.reflection')}</h4>
-                <p className="text-sm text-navy-100 whitespace-pre-wrap italic">{currentEntry.reflection}</p>
+                <p dir="auto" className="journal-text text-sm text-navy-100 whitespace-pre-wrap italic">{currentEntry.reflection}</p>
               </div>
             )}
           </motion.div>
@@ -147,7 +147,7 @@ export default function JournalPage() {
             >
               <div>
                 <p className="text-sm text-white">{entry.date}</p>
-                <p className="text-xs text-navy-200/50 truncate max-w-[300px]">{entry.what_i_did || entry.reflection || t('journal.empty')}</p>
+                <p dir="auto" className="journal-text text-xs text-navy-200/50 truncate max-w-[300px]">{entry.what_i_did || entry.reflection || t('journal.empty')}</p>
               </div>
               <span className={`text-xs ${moodColor(entry.mood)}`}>{t(`journal.mood${entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}`)}</span>
             </motion.div>
@@ -185,15 +185,15 @@ export default function JournalPage() {
                 </div>
                 <div>
                   <label className="text-xs text-navy-200/60 mb-1 block">{t('journal.whatDidI')}</label>
-                  <textarea value={form.what_i_did} onChange={(e) => setForm({ ...form, what_i_did: e.target.value })} className="celestial-input min-h-[80px] resize-none" />
+                  <textarea dir="auto" value={form.what_i_did} onChange={(e) => setForm({ ...form, what_i_did: e.target.value })} className="celestial-input journal-text min-h-[80px] resize-none" />
                 </div>
                 <div>
                   <label className="text-xs text-navy-200/60 mb-1 block">{t('journal.plans')}</label>
-                  <textarea value={form.plans} onChange={(e) => setForm({ ...form, plans: e.target.value })} className="celestial-input min-h-[80px] resize-none" />
+                  <textarea dir="auto" value={form.plans} onChange={(e) => setForm({ ...form, plans: e.target.value })} className="celestial-input journal-text min-h-[80px] resize-none" />
                 </div>
                 <div>
                   <label className="text-xs text-navy-200/60 mb-1 block">{t('journal.reflection')}</label>
-                  <textarea value={form.reflection} onChange={(e) => setForm({ ...form, reflection: e.target.value })} className="celestial-input min-h-[80px] resize-none" />
+                  <textarea dir="auto" value={form.reflection} onChange={(e) => setForm({ ...form, reflection: e.target.value })} className="celestial-input journal-text min-h-[80px] resize-none" />
                 </div>
               </div>
               <div className="flex gap-2 mt-4">

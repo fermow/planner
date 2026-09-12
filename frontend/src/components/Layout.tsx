@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Bell, Menu, LayoutDashboard, Clock, Calendar,
@@ -31,6 +31,8 @@ export default function Layout() {
   const unread = notifications.filter((n) => !n.read);
   const clock = useClock();
   const { t } = useTranslation();
+  const researchWorkspace = currentPage === 'research-word';
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
 
   const pageTitles: Record<string, string> = {
     dashboard: t('nav.dashboard'),
@@ -66,7 +68,7 @@ export default function Layout() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
+      if (window.innerWidth < 1280) {
         setSidebarOpen(false);
       }
     };
@@ -79,7 +81,7 @@ export default function Layout() {
 
   return (
     <div className={`flex min-h-screen ${currentTrack ? 'pb-40 md:pb-24' : 'pb-16 md:pb-0'}`}>
-      <Sidebar />
+      <Sidebar desktopOpen={desktopSidebarOpen} />
 
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -89,18 +91,21 @@ export default function Layout() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm xl:hidden"
           />
         )}
       </AnimatePresence>
 
-      <div className="flex-1 ml-0 md:ml-56 relative z-10 transition-all duration-300 flex flex-col min-h-0">
+      <div className={`flex-1 ml-0 ${desktopSidebarOpen ? 'xl:ml-56' : ''} relative z-10 transition-all duration-300 flex flex-col min-h-0`}>
         {/* Top bar */}
-        <header className="sticky top-0 z-20 glass-card rounded-none border-t-0 border-l-0 border-r-0 px-3 md:px-8 h-12 md:h-14 flex items-center justify-between shrink-0">
+        <header className="sticky top-0 z-20 glass-card rounded-none border-t-0 border-l-0 border-r-0 px-3 xl:px-8 h-12 xl:h-14 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 md:gap-3">
+            <button onClick={() => setDesktopSidebarOpen((open) => !open)} className="hidden xl:flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1 text-xs text-navy-200 hover:bg-white/5 hover:text-white" title={desktopSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
+              <Menu size={14} /><span>{desktopSidebarOpen ? 'Hide menu' : 'Show menu'}</span>
+            </button>
             <button
               onClick={toggleSidebar}
-              className="md:hidden p-1.5 rounded-lg hover:bg-white/5 text-navy-200 hover:text-white transition-all"
+              className="xl:hidden p-1.5 rounded-lg hover:bg-white/5 text-navy-200 hover:text-white transition-all"
               aria-label={t('header.toggleSidebar')}
             >
               <Menu size={18} />
@@ -170,7 +175,7 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="p-3 md:p-8 flex-1 min-h-0 overflow-auto">
+        <main className={`${researchWorkspace ? 'p-0 overflow-hidden' : 'p-3 xl:p-8 overflow-auto'} flex-1 min-h-0`}>
           {currentPage === 'dashboard' && <Dashboard key="dashboard" />}
           {currentPage === 'deadlines' && <DeadlinesPage key="deadlines" />}
           {currentPage === 'planner' && <PlannerPage key="planner" />}
