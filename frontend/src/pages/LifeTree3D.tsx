@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, ContactShadows, useCursor, Html } from '@react-three/drei';
+import { OrbitControls, ContactShadows, useCursor, Html, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
@@ -579,26 +579,35 @@ function GlowParticles({ points }: { points: THREE.Vector3[] }) {
   );
 }
 
-function Rig() {
+function Rig({ theme }: { theme: 'default' | 'kawaii' }) {
+  const isKawaii = theme === 'kawaii';
   return (
     <>
-      <fog attach="fog" args={['#c9ecfb', 7, 14]} />
-      <ambientLight intensity={0.65} />
-      <hemisphereLight args={[toColor([135, 206, 235]), toColor([154, 224, 139]), 0.55]} />
-      <directionalLight position={[4, 6, 3]} intensity={1.15} color="#ffffff" />
-      <pointLight position={[-3, 2.6, -3]} intensity={0.5} color={toColor([240, 192, 64])} />
-      <pointLight position={[3, 1.4, 4]} intensity={0.35} color={toColor([64, 224, 208])} />
+      <fog attach="fog" args={[isKawaii ? '#3d0a22' : '#071126', 6, 15]} />
+      <ambientLight intensity={0.36} />
+      <hemisphereLight
+        args={[
+          isKawaii ? toColor([255, 138, 178]) : toColor([74, 122, 205]),
+          isKawaii ? toColor([88, 15, 48]) : toColor([7, 18, 34]),
+          0.6,
+        ]}
+      />
+      <directionalLight position={[4, 6, 3]} intensity={1.35} color={isKawaii ? '#ffe2ee' : '#cfe8ff'} />
+      <pointLight position={[-3, 2.6, -3]} intensity={0.85} color={toColor([240, 192, 64])} />
+      <pointLight position={[3, 1.4, 4]} intensity={0.58} color={toColor(isKawaii ? [255, 45, 85] : [64, 224, 208])} />
     </>
   );
 }
 
 function Scene3D({
   data,
+  theme,
   onHover,
   onToggleBranch,
   onToggleGoal,
 }: {
   data: Tree3D;
+  theme: 'default' | 'kawaii';
   onHover: (info: TipInfo | null) => void;
   onToggleBranch: (branchId: string) => void;
   onToggleGoal: (branchId: string, goalId: string) => void;
@@ -655,7 +664,16 @@ function Scene3D({
 
   return (
     <>
-      <Rig />
+      <Stars
+        radius={28}
+        depth={12}
+        count={theme === 'kawaii' ? 900 : 1500}
+        factor={2.2}
+        saturation={0.35}
+        fade
+        speed={0.35}
+      />
+      <Rig theme={theme} />
       <Trunk data={data} growth={growth} />
       {data.willow.strands.map((s, i) => (
         <WillowStrand key={i} strand={s} growth={growth} />
@@ -695,8 +713,8 @@ function Scene3D({
         autoRotateSpeed={0.9}
       />
       <EffectComposer>
-        <Bloom intensity={0.75} luminanceThreshold={0.18} luminanceSmoothing={0.3} mipmapBlur />
-        <Vignette eskil={false} offset={0.22} darkness={0.5} />
+        <Bloom intensity={0.95} luminanceThreshold={0.22} luminanceSmoothing={0.35} mipmapBlur />
+        <Vignette eskil={false} offset={0.18} darkness={0.68} />
       </EffectComposer>
     </>
   );
@@ -725,16 +743,24 @@ export default function LifeTree3D({
   const [hover, setHover] = useState<TipInfo | null>(null);
   const data = useMemo(() => buildTreeData(tree, theme), [tree, theme]);
   const [gl] = useState(() => webglAvailable());
+  const completedGoals = data.leaves.filter((leaf) => leaf.done).length;
+  const totalGoals = data.leaves.length;
+  const overallProgress = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
   const above = (hover?.y ?? 0) > 46;
 
   return (
-    <div className="relative h-[540px] md:h-[720px] overflow-hidden rounded-xl">
-      {/* Sky → grass backdrop */}
+    <div className="relative h-[540px] md:h-[720px] overflow-hidden rounded-2xl border border-white/10 bg-[#071126]">
+      {/* Cinematic sky backdrop */}
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(180deg, #6cb8ef 0%, #a9dcf7 38%, #ddf4d8 66%, #a8e08d 100%)' }}
+        style={{
+          background: theme === 'kawaii'
+            ? 'radial-gradient(circle at 72% 18%, rgba(255,142,184,0.44), transparent 22%), radial-gradient(circle at 20% 85%, rgba(211,63,127,0.22), transparent 28%), linear-gradient(160deg, #2b0820 0%, #100516 58%, #06030b 100%)'
+            : 'radial-gradient(circle at 70% 16%, rgba(64,224,208,0.18), transparent 22%), radial-gradient(circle at 18% 88%, rgba(92,107,192,0.22), transparent 32%), linear-gradient(160deg, #102a53 0%, #0a1731 50%, #040915 100%)',
+        }}
       />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-black/35 to-transparent" />
 
       {gl ? (
         <Canvas
@@ -746,6 +772,7 @@ export default function LifeTree3D({
           <Suspense fallback={null}>
             <Scene3D
               data={data}
+              theme={theme}
               onHover={setHover}
               onToggleBranch={onToggleBranch}
               onToggleGoal={onToggleGoal}
@@ -761,8 +788,23 @@ export default function LifeTree3D({
       )}
 
       {/* Soft vignette over the scene */}
-      <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-black/5" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/5 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#020611]/65 to-transparent" />
+
+      {/* Scene HUD */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-4 md:p-5">
+        <div className="rounded-xl border border-white/10 bg-[#050816]/55 px-3 py-2 backdrop-blur-md">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-cosmic-cyan">Living map</p>
+          <p className="mt-0.5 text-xs font-medium text-white">{tree.title}</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-[#050816]/55 px-3 py-2 text-right backdrop-blur-md">
+          <p className="text-lg font-semibold leading-none text-white tabular-nums">{overallProgress}%</p>
+          <p className="mt-1 text-[9px] uppercase tracking-wider text-navy-200/70">growth</p>
+        </div>
+      </div>
+      <div className="pointer-events-none absolute bottom-4 left-4 z-20 rounded-xl border border-white/10 bg-[#050816]/55 px-3 py-2 backdrop-blur-md md:bottom-5 md:left-5">
+        <p className="text-[10px] text-navy-100/85"><span className="text-cosmic-cyan">Drag</span> to explore · <span className="text-cosmic-gold">click</span> a node to complete</p>
+      </div>
 
       {/* Hover card */}
       <AnimatePresence>
