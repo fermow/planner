@@ -3,7 +3,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
-import { Extension } from '@tiptap/core';
+import { Extension, Node } from '@tiptap/core';
 import Color from '@tiptap/extension-color';
 import FontFamily from '@tiptap/extension-font-family';
 import Highlight from '@tiptap/extension-highlight';
@@ -35,6 +35,11 @@ const Typography = Extension.create({
     { types: ['paragraph', 'heading'], attributes: { paragraphSpacing: { default: null, parseHTML: (element) => element.style.marginBottom || null, renderHTML: (attributes) => attributes.paragraphSpacing ? { style: `margin-bottom: ${attributes.paragraphSpacing}` } : {} } } },
   ]; },
 });
+const PageBreak = Node.create({
+  name: 'pageBreak', group: 'block', atom: true,
+  parseHTML() { return [{ tag: 'div[data-page-break]' }]; },
+  renderHTML() { return ['div', { 'data-page-break': '', class: 'editor-page-break' }]; },
+});
 
 function download(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob); const anchor = window.document.createElement('a');
@@ -53,7 +58,7 @@ function wordParagraphs(html: string) {
 
 function Editor({ value, direction, onChange }: { value: string; direction: ResearchDocument['direction']; onChange: (html: string) => void }) {
   const [findOpen, setFindOpen] = useState(false), [findText, setFindText] = useState(''), [replaceText, setReplaceText] = useState('');
-  const editor = useEditor({ extensions: [StarterKit.configure({ heading: { levels: [1, 2, 3] } }), Placeholder.configure({ placeholder: 'Start writing…' }), TextAlign.configure({ types: ['heading', 'paragraph'] }), TextStyle, Color, FontFamily, Highlight.configure({ multicolor: true }), Underline, Typography], content: value || '<p></p>', editorProps: { attributes: { class: 'research-prosemirror' } }, onUpdate: ({ editor: e }) => onChange(e.getHTML()) });
+  const editor = useEditor({ extensions: [StarterKit.configure({ heading: { levels: [1, 2, 3] } }), Placeholder.configure({ placeholder: 'Start writing…' }), TextAlign.configure({ types: ['heading', 'paragraph'] }), TextStyle, Color, FontFamily, Highlight.configure({ multicolor: true }), Underline, Typography, PageBreak], content: value || '<p></p>', editorProps: { attributes: { class: 'research-prosemirror' } }, onUpdate: ({ editor: e }) => onChange(e.getHTML()) });
   useEffect(() => { if (editor && editor.getHTML() !== (value || '<p></p>')) editor.commands.setContent(value || '<p></p>', { emitUpdate: false }); }, [editor, value]);
   if (!editor) return null;
   const b = (label: string, icon: React.ReactNode, run: () => void, active = false) => <button type="button" title={label} aria-label={label} onMouseDown={(e) => e.preventDefault()} onClick={run} className={`word-tool ${active ? 'is-active' : ''}`}>{icon}</button>;
@@ -61,7 +66,7 @@ function Editor({ value, direction, onChange }: { value: string; direction: Rese
   const replaceOne = () => { findNext(); const { from, to } = editor.state.selection; if (from !== to) editor.chain().focus().insertContent(replaceText).run(); };
   return <div className="word-editor-shell" dir={direction}><div className="word-toolbar" dir="ltr">
     <span className="word-tool-group">{b('Undo', <Undo2 size={15} />, () => editor.chain().focus().undo().run())}{b('Redo', <Redo2 size={15} />, () => editor.chain().focus().redo().run())}</span>
-    <span className="word-tool-group">{b('Find and replace', <Search size={15} />, () => setFindOpen((open) => !open), findOpen)}{b('Page break', <span className="word-heading">PB</span>, () => editor.chain().focus().setHorizontalRule().run())}</span>
+    <span className="word-tool-group">{b('Find and replace', <Search size={15} />, () => setFindOpen((open) => !open), findOpen)}{b('New page', <span className="word-heading">+Pg</span>, () => editor.chain().focus().insertContent([{ type: 'pageBreak' }, { type: 'paragraph' }]).run())}</span>
     <span className="word-tool-group">{b('Bold', <Bold size={15} />, () => editor.chain().focus().toggleBold().run(), editor.isActive('bold'))}{b('Italic', <Italic size={15} />, () => editor.chain().focus().toggleItalic().run(), editor.isActive('italic'))}{b('Underline', <span className="word-underline">U</span>, () => editor.chain().focus().toggleUnderline().run(), editor.isActive('underline'))}{b('Code', <Code2 size={15} />, () => editor.chain().focus().toggleCode().run(), editor.isActive('code'))}</span>
     <span className="word-tool-group word-select-tools"><select title="Font" defaultValue="Inter" onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}><option value="Inter">Sans</option><option value="Georgia">Serif</option><option value="Arial">Arial</option><option value="Tahoma">Tahoma</option></select><select title="Font size" defaultValue="16px" onChange={(e) => editor.chain().focus().setMark('textStyle', { fontSize: e.target.value }).run()}><option value="12px">12</option><option value="14px">14</option><option value="16px">16</option><option value="18px">18</option><option value="22px">22</option><option value="28px">28</option></select></span>
     <span className="word-tool-group word-color-tools"><label title="Text color"><span>A</span><input aria-label="Text color" type="color" defaultValue="#e7edf9" onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()} /></label><label title="Highlight"><span>▰</span><input aria-label="Highlight color" type="color" defaultValue="#f0c040" onInput={(e) => editor.chain().focus().toggleHighlight({ color: (e.target as HTMLInputElement).value }).run()} /></label></span>
