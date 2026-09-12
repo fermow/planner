@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard, Clock, Calendar, BookOpen, Columns3, Settings, BarChart3, Sparkles, TreePine, Users, Music4, CalendarDays,
+  LayoutDashboard, Clock, Calendar, BookOpen, Columns3, Settings, BarChart3, Sparkles, TreePine, Users, Music4, CalendarDays, FileText,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import type { Page } from '../types';
@@ -15,6 +15,7 @@ export default function Sidebar() {
     { page: 'deadlines', label: t('nav.deadlines'), icon: <Clock size={18} /> },
     { page: 'planner', label: t('nav.planner'), icon: <Calendar size={18} /> },
     { page: 'journal', label: t('nav.journal'), icon: <BookOpen size={18} /> },
+    { page: 'research-word', label: t('nav.researchWord'), icon: <FileText size={18} /> },
     { page: 'boards', label: t('nav.boards'), icon: <Columns3 size={18} /> },
     { page: 'life-tree', label: t('nav.lifeTree'), icon: <TreePine size={18} /> },
     { page: 'connections', label: t('nav.connections'), icon: <Users size={18} /> },

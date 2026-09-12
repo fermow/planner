@@ -23,6 +23,7 @@ import LifeTreePage from '../pages/LifeTree';
 import ConnectionsPage from '../pages/Connections';
 import MusicPage from '../pages/Music';
 import CalendarPage from '../pages/Calendar';
+import ResearchWordPage from '../pages/ResearchWord';
 
 export default function Layout() {
   const { currentPage, setPage, toggleSearch, notifications, dismissNotification, sidebarOpen, toggleSidebar, setSidebarOpen, theme, toggleTheme } = useStore();
@@ -36,6 +37,7 @@ export default function Layout() {
     deadlines: t('deadline.title'),
     planner: t('planner.title'),
     journal: t('journal.title'),
+    'research-word': t('nav.researchWord'),
     boards: t('nav.boards'),
     reports: t('nav.reports'),
     settings: t('nav.settings'),
@@ -173,6 +175,7 @@ export default function Layout() {
           {currentPage === 'deadlines' && <DeadlinesPage key="deadlines" />}
           {currentPage === 'planner' && <PlannerPage key="planner" />}
           {currentPage === 'journal' && <JournalPage key="journal" />}
+          {currentPage === 'research-word' && <ResearchWordPage key="research-word" />}
           {currentPage === 'boards' && <BoardsPage key="boards" />}
           {currentPage === 'reports' && <ReportsPage key="reports" />}
           {currentPage === 'settings' && <SettingsPage key="settings" />}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Deadline, PlannerEntry, JournalEntry, Whiteboard, TableData, Notification, Page, LifeTreeEntry, Connection, Habit, MusicTrack } from '../types';
+import type { Deadline, PlannerEntry, JournalEntry, ResearchDocument, Whiteboard, TableData, Notification, Page, LifeTreeEntry, Connection, Habit, MusicTrack } from '../types';
 import { api } from '../api/client';
 import { t } from '../i18n/t';
 
@@ -75,6 +75,7 @@ interface AppState {
   deadlines: Deadline[];
   planner: PlannerEntry[];
   journal: JournalEntry[];
+  researchDocuments: ResearchDocument[];
   whiteboards: Whiteboard[];
   tables: TableData[];
   habits: Habit[];
@@ -98,6 +99,7 @@ interface AppState {
   fetchDeadlines: () => Promise<void>;
   fetchPlanner: () => Promise<void>;
   fetchJournal: () => Promise<void>;
+  fetchResearchDocuments: () => Promise<void>;
   fetchWhiteboards: () => Promise<void>;
   fetchTables: () => Promise<void>;
   fetchNotifications: () => Promise<void>;
@@ -119,6 +121,11 @@ interface AppState {
   addJournalEntry: (data: any) => Promise<void>;
   editJournalEntry: (id: string, data: any) => Promise<void>;
   removeJournalEntry: (id: string) => Promise<void>;
+
+  // Research document actions
+  addResearchDocument: (data: any) => Promise<ResearchDocument>;
+  editResearchDocument: (id: string, data: any) => Promise<ResearchDocument>;
+  removeResearchDocument: (id: string) => Promise<void>;
 
   // Table actions
   addTable: () => Promise<string>;
@@ -206,6 +213,7 @@ export const useStore = create<AppState>((set, get) => ({
   deadlines: [],
   planner: [],
   journal: [],
+  researchDocuments: [],
   whiteboards: [],
   tables: [],
   habits: [],
@@ -272,6 +280,15 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const data = await api.getJournal();
       set({ journal: data });
+    } catch (e: any) {
+      set({ error: e.message });
+    }
+  },
+
+  fetchResearchDocuments: async () => {
+    try {
+      const data = await api.getResearchDocuments();
+      set({ researchDocuments: data });
     } catch (e: any) {
       set({ error: e.message });
     }
@@ -368,6 +385,23 @@ export const useStore = create<AppState>((set, get) => ({
     await api.deleteJournalEntry(id);
     await get().fetchJournal();
     get().showToast(t('journal.deleted'), 'success');
+  },
+
+  addResearchDocument: async (data) => {
+    const created = await api.createResearchDocument(data);
+    await get().fetchResearchDocuments();
+    return created;
+  },
+
+  editResearchDocument: async (id, data) => {
+    const updated = await api.updateResearchDocument(id, data);
+    await get().fetchResearchDocuments();
+    return updated;
+  },
+
+  removeResearchDocument: async (id) => {
+    await api.deleteResearchDocument(id);
+    await get().fetchResearchDocuments();
   },
 
   addWhiteboard: async () => {
