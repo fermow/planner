@@ -89,6 +89,7 @@ export interface ResearchDocument {
   header_text: string;
   footer_text: string;
   citation_style: 'apa' | 'ieee' | 'chicago';
+  show_toc: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -111,6 +112,7 @@ export interface ResearchDocumentRevision {
   header_text: string;
   footer_text: string;
   citation_style: 'apa' | 'ieee' | 'chicago';
+  show_toc: boolean;
   created_at: string;
 }
 

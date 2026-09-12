@@ -18,9 +18,9 @@ import { useStore } from '../store/useStore';
 import './ResearchWord.css';
 
 type WordTheme = 'dark' | 'paper' | 'light';
-const blank = (): Omit<ResearchDocument, 'id' | 'created_at' | 'updated_at'> => ({ title: 'Untitled research note', abstract: '', content: '', references: [], tags: [], direction: 'auto', status: 'draft', template: 'simple', table_headers: ['Variable', 'Value', 'Notes'], table_rows: [['', '', '']], page_size: 'a4', page_margin: 'normal', header_text: '', footer_text: '', citation_style: 'apa' });
+const blank = (): Omit<ResearchDocument, 'id' | 'created_at' | 'updated_at'> => ({ title: 'Untitled research note', abstract: '', content: '', references: [], tags: [], direction: 'auto', status: 'draft', template: 'simple', table_headers: ['Variable', 'Value', 'Notes'], table_rows: [['', '', '']], page_size: 'a4', page_margin: 'normal', header_text: '', footer_text: '', citation_style: 'apa', show_toc: false });
 const plain = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim();
-const stamp = (d: ResearchDocument) => JSON.stringify({ title: d.title, abstract: d.abstract, content: d.content, references: d.references, tags: d.tags, direction: d.direction, status: d.status, template: d.template, table_headers: d.table_headers, table_rows: d.table_rows, page_size: d.page_size, page_margin: d.page_margin, header_text: d.header_text, footer_text: d.footer_text, citation_style: d.citation_style });
+const stamp = (d: ResearchDocument) => JSON.stringify({ title: d.title, abstract: d.abstract, content: d.content, references: d.references, tags: d.tags, direction: d.direction, status: d.status, template: d.template, table_headers: d.table_headers, table_rows: d.table_rows, page_size: d.page_size, page_margin: d.page_margin, header_text: d.header_text, footer_text: d.footer_text, citation_style: d.citation_style, show_toc: d.show_toc });
 const templateBody: Record<ResearchDocument['template'], string> = {
   simple: '<p></p>',
   paper: '<h1>Introduction</h1><p></p><h2>Methodology</h2><p></p><h2>Results</h2><p></p><h2>Discussion</h2><p></p><h2>Conclusion</h2><p></p>',
@@ -136,6 +136,22 @@ export default function ResearchWordPage() {
     if (!textarea || !draft) return;
     const preview = window.document.createElement('ol'); preview.className = `citation-preview citation-${draft.citation_style}`;
     draft.references.forEach((reference, index) => { const item = window.document.createElement('li'); item.textContent = draft.citation_style === 'ieee' ? `[${index + 1}] ${reference}` : reference; preview.append(item); }); textarea.after(preview); return () => preview.remove();
+  }, [draft]);
+  useEffect(() => {
+    const target = window.document.querySelector('.research-word header > div:first-child');
+    if (!target || !draft) return;
+    const control = window.document.createElement('label'); control.className = 'word-toc-picker';
+    const input = window.document.createElement('input'); input.type = 'checkbox'; input.checked = draft.show_toc; input.onchange = () => update({ show_toc: input.checked }); control.append(input, window.document.createTextNode(' Table of contents')); target.prepend(control);
+    return () => control.remove();
+  }, [draft]);
+  useEffect(() => {
+    const page = window.document.querySelector('.research-word .word-page');
+    if (!page || !draft?.show_toc) return;
+    const source = new DOMParser().parseFromString(draft.content, 'text/html'); const headings = Array.from(source.querySelectorAll('h1,h2,h3'));
+    if (!headings.length) return;
+    const toc = window.document.createElement('nav'); toc.className = 'word-toc'; const title = window.document.createElement('p'); title.textContent = 'Table of contents'; toc.append(title); const list = window.document.createElement('ol');
+    headings.forEach((heading, index) => { const item = window.document.createElement('li'); item.className = `toc-${heading.tagName.toLowerCase()}`; const link = window.document.createElement('button'); link.textContent = heading.textContent || `Section ${index + 1}`; link.onclick = () => window.document.querySelectorAll('.research-prosemirror h1,.research-prosemirror h2,.research-prosemirror h3')[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' }); item.append(link); list.append(item); }); toc.append(list);
+    const chrome = page.querySelector('.page-chrome'); if (chrome) chrome.after(toc); else page.prepend(toc); return () => toc.remove();
   }, [draft]);
   useEffect(() => {
     const target = window.document.querySelector('.research-word header > div:first-child');

@@ -26,6 +26,7 @@ class ResearchDocument(BaseModel):
     header_text: str = ""
     footer_text: str = ""
     citation_style: Literal["apa", "ieee", "chicago"] = "apa"
+    show_toc: bool = False
     created_at: str = Field(default_factory=now_iso)
     updated_at: str = Field(default_factory=now_iso)
 
@@ -46,6 +47,7 @@ class ResearchDocumentCreate(BaseModel):
     header_text: str = ""
     footer_text: str = ""
     citation_style: Literal["apa", "ieee", "chicago"] = "apa"
+    show_toc: bool = False
 
 
 class ResearchDocumentUpdate(BaseModel):
@@ -64,6 +66,7 @@ class ResearchDocumentUpdate(BaseModel):
     header_text: Optional[str] = None
     footer_text: Optional[str] = None
     citation_style: Optional[Literal["apa", "ieee", "chicago"]] = None
+    show_toc: Optional[bool] = None
 
 
 class ResearchDocumentRevision(BaseModel):
@@ -84,4 +87,5 @@ class ResearchDocumentRevision(BaseModel):
     header_text: str = ""
     footer_text: str = ""
     citation_style: Literal["apa", "ieee", "chicago"] = "apa"
+    show_toc: bool = False
     created_at: str = Field(default_factory=now_iso)
