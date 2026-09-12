@@ -150,12 +150,15 @@ interface Foliage3D {
   color: RGB;
 }
 
-interface WillowStrand {
+interface NaturalLimb {
   pts: THREE.Vector3[];
+  radius: number;
+  color: RGB;
 }
 
-interface WillowData {
-  strands: WillowStrand[];
+interface NaturalCrown {
+  roots: NaturalLimb[];
+  twigs: NaturalLimb[];
   canopy: Foliage3D[];
 }
 
@@ -166,7 +169,7 @@ interface Tree3D {
   trunkColor: THREE.Color;
   branches: Branch3D[];
   leaves: Leaf3D[];
-  willow: WillowData;
+  crown: NaturalCrown;
   particles: THREE.Vector3[];
 }
 
@@ -219,7 +222,7 @@ function buildTreeData(tree: LifeTreeEntry, theme: 'default' | 'kawaii'): Tree3D
       done: b.done,
       ratio,
       color: toColor(progressColor(ratio, p)),
-      radius: 0.026 + ratio * 0.026,
+      radius: 0.043 + ratio * 0.026,
       attach: p0,
       tip: p2,
       curve: [p0, p1, p2],
@@ -239,36 +242,96 @@ function buildTreeData(tree: LifeTreeEntry, theme: 'default' | 'kawaii'): Tree3D
     })),
   );
 
-  // Weeping-willow crown (decorative, separate from the life nodes)
+  // Natural broadleaf crown: roots, secondary limbs and dense foliage.
+  // These are decorative, while the primary branches above remain the interactive life-map nodes.
   const wR = mulberry32((seed ^ 0x5f3759df) >>> 0);
-  const willowaGreen: RGB = [117, 178, 96];
-  const apexY = trunkHeight * 0.92;
-  const strands: WillowStrand[] = [];
-  for (let i = 0; i < 26; i++) {
-    const az = (i / 26) * Math.PI * 2 + wR() * 0.3;
+  const barkLight: RGB = theme === 'kawaii' ? [125, 52, 83] : [99, 59, 34];
+  const barkDark: RGB = theme === 'kawaii' ? [73, 20, 48] : [48, 28, 14];
+  const leafPalette: RGB[] = theme === 'kawaii'
+    ? [[255, 110, 155], [240, 75, 128], [255, 152, 184], [194, 53, 108]]
+    : [[53, 112, 67], [67, 138, 76], [41, 88, 56], [102, 158, 82], [81, 126, 65]];
+  const roots: NaturalLimb[] = [];
+  for (let i = 0; i < 9; i++) {
+    const az = (i / 9) * Math.PI * 2 + wR() * 0.38;
     const cos = Math.cos(az);
     const sin = Math.sin(az);
-    const anchorR = 0.05 + wR() * 0.2;
-    const outR = 0.45 + wR() * 0.85;
-    const drop = 0.4 + wR() * 0.7;
-    const lift = 0.05 + wR() * 0.18;
-    const p0 = new THREE.Vector3(cos * anchorR, apexY - lift, sin * anchorR);
-    const p1 = new THREE.Vector3(cos * (anchorR + outR * 0.3), apexY + 0.1, sin * (anchorR + outR * 0.3));
-    const p2 = new THREE.Vector3(cos * (anchorR + outR * 0.72), apexY - drop * 0.28, sin * (anchorR + outR * 0.72));
-    const p3 = new THREE.Vector3(cos * (anchorR + outR), apexY - drop, sin * (anchorR + outR));
-    strands.push({ pts: [p0, p1, p2, p3] });
-  }
-  const canopy: Foliage3D[] = [];
-  for (let i = 0; i < 24; i++) {
-    canopy.push({
-      pos: new THREE.Vector3((wR() - 0.5) * 0.75, apexY - 0.08 + wR() * 0.42, (wR() - 0.5) * 0.75),
-      r: 0.14 + wR() * 0.18,
-      color: willowaGreen,
+    const len = 0.58 + wR() * 0.55;
+    roots.push({
+      pts: [
+        new THREE.Vector3(cos * 0.06, 0.06, sin * 0.06),
+        new THREE.Vector3(cos * len * 0.42, 0.035 + wR() * 0.06, sin * len * 0.42),
+        new THREE.Vector3(cos * len, 0.018, sin * len),
+      ],
+      radius: 0.035 + wR() * 0.022,
+      color: wR() > 0.45 ? barkLight : barkDark,
     });
   }
-  strands.forEach((s) => {
-    canopy.push({ pos: s.pts[3].clone(), r: 0.05 + wR() * 0.05, color: willowaGreen });
+
+  const twigs: NaturalLimb[] = [];
+  const canopy: Foliage3D[] = [];
+  branches.forEach((branch, branchIndex) => {
+    const curve = new THREE.CatmullRomCurve3(branch.curve, false, 'centripetal', 0.5);
+    const count = 4 + Math.floor(wR() * 3);
+    for (let i = 0; i < count; i++) {
+      const at = 0.3 + (i / Math.max(1, count - 1)) * 0.62;
+      const start = curve.getPoint(at);
+      const direction = branch.tip.clone().sub(branch.attach).normalize();
+      const sideways = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
+      const side = (i % 2 === 0 ? 1 : -1) * (0.22 + wR() * 0.22);
+      const length = 0.38 + wR() * 0.42;
+      const middle = start.clone().addScaledVector(direction, length * 0.48).addScaledVector(sideways, side * 0.48);
+      middle.y += 0.14 + wR() * 0.16;
+      const end = start.clone().addScaledVector(direction, length).addScaledVector(sideways, side);
+      end.y += 0.16 + wR() * 0.32;
+      twigs.push({
+        pts: [start, middle, end],
+        radius: 0.012 + wR() * 0.012,
+        color: wR() > 0.55 ? barkLight : barkDark,
+      });
+
+      for (let leaf = 0; leaf < 8; leaf++) {
+        const a = wR() * Math.PI * 2;
+        const spread = 0.12 + wR() * 0.34;
+        canopy.push({
+          pos: end.clone().add(new THREE.Vector3(
+            Math.cos(a) * spread,
+            (wR() - 0.38) * 0.36,
+            Math.sin(a) * spread,
+          )),
+          r: 0.09 + wR() * 0.12,
+          color: leafPalette[(branchIndex + leaf + Math.floor(wR() * leafPalette.length)) % leafPalette.length],
+        });
+      }
+    }
   });
+
+  const apexY = trunkHeight * 0.9;
+  for (let i = 0; i < 86; i++) {
+    const az = wR() * Math.PI * 2;
+    const radial = Math.pow(wR(), 0.62) * 1.42;
+    const y = apexY + (wR() - 0.2) * 1.15 - radial * 0.12;
+    canopy.push({
+      pos: new THREE.Vector3(Math.cos(az) * radial, y, Math.sin(az) * radial * 0.78),
+      r: 0.1 + wR() * 0.18,
+      color: leafPalette[Math.floor(wR() * leafPalette.length)],
+    });
+  }
+
+  for (let i = 0; i < 11; i++) {
+    const az = (i / 11) * Math.PI * 2 + wR() * 0.2;
+    const cos = Math.cos(az);
+    const sin = Math.sin(az);
+    const len = 0.78 + wR() * 0.52;
+    twigs.push({
+      pts: [
+        new THREE.Vector3(0, apexY - 0.3, 0),
+        new THREE.Vector3(cos * len * 0.46, apexY + 0.28 + wR() * 0.25, sin * len * 0.46),
+        new THREE.Vector3(cos * len, apexY + 0.12 + wR() * 0.34, sin * len),
+      ],
+      radius: 0.018 + wR() * 0.01,
+      color: barkLight,
+    });
+  }
 
   const particles: THREE.Vector3[] = Array.from({ length: 90 }, () => {
     const a = rand() * Math.PI * 2;
@@ -276,7 +339,7 @@ function buildTreeData(tree: LifeTreeEntry, theme: 'default' | 'kawaii'): Tree3D
     return new THREE.Vector3(Math.cos(a) * r, rand() * 2.6, Math.sin(a) * r);
   });
 
-  return { trunkHeight, trunkBaseR, trunkTopR, trunkColor, branches, leaves, willow: { strands, canopy }, particles };
+  return { trunkHeight, trunkBaseR, trunkTopR, trunkColor, branches, leaves, crown: { roots, twigs, canopy }, particles };
 }
 
 interface TipInfo {
@@ -295,15 +358,29 @@ interface TipInfo {
 
 function Trunk({ data, growth }: { data: Tree3D; growth: number }) {
   const geom = useMemo(() => {
-    const g = new THREE.CylinderGeometry(data.trunkTopR, data.trunkBaseR, data.trunkHeight, 20, 1);
+    const g = new THREE.CylinderGeometry(data.trunkTopR, data.trunkBaseR * 1.35, data.trunkHeight, 28, 9);
     g.translate(0, data.trunkHeight / 2, 0);
     return g;
   }, [data]);
+  const barkRidges = useMemo(() => Array.from({ length: 9 }, (_, index) => {
+    const angle = (index / 9) * Math.PI * 2;
+    const radius = data.trunkBaseR * 1.04;
+    return {
+      position: [Math.cos(angle) * radius, data.trunkHeight * 0.5, Math.sin(angle) * radius] as [number, number, number],
+      rotation: [Math.sin(angle) * 0.06, 0, Math.cos(angle) * 0.06] as [number, number, number],
+    };
+  }), [data]);
   return (
     <group scale={[1, easeOutCubic(growth), 1]}>
       <mesh geometry={geom} castShadow>
-        <meshStandardMaterial color={data.trunkColor} roughness={0.95} metalness={0.02} />
+        <meshStandardMaterial color={data.trunkColor} roughness={1} metalness={0} />
       </mesh>
+      {barkRidges.map((ridge, index) => (
+        <mesh key={index} position={ridge.position} rotation={ridge.rotation} castShadow>
+          <cylinderGeometry args={[0.009, 0.015, data.trunkHeight * 0.92, 6, 3]} />
+          <meshStandardMaterial color="#432714" roughness={1} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -316,8 +393,17 @@ function BranchMesh({ branch, growth, index }: { branch: Branch3D; growth: numbe
   const bGrowth = easeOutCubic(clamp((growth - 0.1 - index * 0.08) / 0.5, 0, 1));
   return (
     <group position={branch.attach} scale={bGrowth}>
+      <mesh geometry={geometry} scale={1.65}>
+        <meshBasicMaterial color={branch.color} transparent opacity={0.13} depthWrite={false} />
+      </mesh>
       <mesh geometry={geometry} castShadow>
-        <meshStandardMaterial color={branch.color} roughness={0.5} metalness={0.08} />
+        <meshStandardMaterial
+          color={branch.color}
+          emissive={branch.color}
+          emissiveIntensity={0.27}
+          roughness={0.38}
+          metalness={0.12}
+        />
       </mesh>
     </group>
   );
@@ -338,6 +424,10 @@ function CategoryOrb({
   useCursor(active);
   return (
     <group position={branch.tip}>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.115, 0.009, 10, 28]} />
+        <meshBasicMaterial color={branch.color} transparent opacity={0.72} />
+      </mesh>
       <mesh
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -353,11 +443,11 @@ function CategoryOrb({
           onToggle(branch.id);
         }}
       >
-        <sphereGeometry args={[0.075, 20, 20]} />
+        <sphereGeometry args={[0.095, 24, 24]} />
         <meshStandardMaterial
-          color="#22c55e"
-          emissive="#22c55e"
-          emissiveIntensity={active ? 1.1 : 0.45}
+          color={branch.color}
+          emissive={branch.color}
+          emissiveIntensity={active ? 1.5 : 0.78}
           roughness={0.3}
         />
       </mesh>
@@ -433,21 +523,21 @@ function Leaves({
         }
       }}
     >
-      <icosahedronGeometry args={[0.05, 1]} />
-      <meshBasicMaterial />
+      <icosahedronGeometry args={[0.068, 1]} />
+      <meshBasicMaterial toneMapped={false} />
     </instancedMesh>
   );
 }
 
-function WillowStrand({ strand, growth }: { strand: WillowStrand; growth: number }) {
+function NaturalLimbMesh({ limb, growth }: { limb: NaturalLimb; growth: number }) {
   const geometry = useMemo(() => {
-    const curve = new THREE.CatmullRomCurve3(strand.pts, false, 'catmullrom', 0.5);
-    return new THREE.TubeGeometry(curve, 18, 0.007, 5, false);
-  }, [strand]);
-  if (growth < 0.5) return null;
+    const curve = new THREE.CatmullRomCurve3(limb.pts, false, 'catmullrom', 0.5);
+    return new THREE.TubeGeometry(curve, 16, limb.radius, 6, false);
+  }, [limb]);
+  if (growth < 0.28) return null;
   return (
-    <mesh geometry={geometry}>
-      <meshStandardMaterial color="#6f9a52" roughness={0.9} metalness={0} />
+    <mesh geometry={geometry} castShadow>
+      <meshStandardMaterial color={toColor(limb.color)} roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -471,9 +561,10 @@ function Canopy({ blobs, growth }: { blobs: Foliage3D[]; growth: number }) {
     const mesh = ref.current;
     if (!mesh) return;
     blobs.forEach((it, i) => {
-      const s = easeOutCubic(clamp((growth - 0.45 - i * 0.05) / 0.4, 0, 1));
+      const s = easeOutCubic(clamp((growth - 0.3 - i * 0.003) / 0.52, 0, 1));
       dummy.position.copy(it.pos);
-      dummy.scale.setScalar(Math.max(0.0001, s * it.r));
+      dummy.scale.set(it.r * s * 1.05, it.r * s * (0.8 + (i % 3) * 0.12), it.r * s);
+      dummy.rotation.set((i % 5) * 0.32, (i % 7) * 0.48, (i % 3) * 0.2);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
     });
@@ -483,8 +574,8 @@ function Canopy({ blobs, growth }: { blobs: Foliage3D[]; growth: number }) {
   if (blobs.length === 0) return null;
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, blobs.length]} frustumCulled={false}>
-      <icosahedronGeometry args={[1, 2]} />
-      <meshStandardMaterial transparent opacity={0.34} depthWrite={false} />
+      <dodecahedronGeometry args={[1, 1]} />
+      <meshStandardMaterial roughness={0.82} metalness={0.02} />
     </instancedMesh>
   );
 }
@@ -507,20 +598,20 @@ function NodeLabels({
           key={`bl:${br.id}`}
           position={[br.tip.x, br.tip.y + 0.24, br.tip.z]}
           center
-          distanceFactor={6.5}
-          zIndexRange={[5, 0]}
+          distanceFactor={5.8}
+          zIndexRange={[12, 0]}
           style={{ pointerEvents: 'none', opacity: branchOpacity }}
         >
           <span
             className="whitespace-nowrap rounded-full px-2 py-0.5 font-semibold"
             style={{
-              fontSize: 11,
-              color: '#17324a',
-              background: 'rgba(255,255,255,0.78)',
-              border: '1px solid rgba(255,255,255,0.95)',
-              boxShadow: '0 1px 5px rgba(20,70,50,0.22)',
-              backdropFilter: 'blur(4px)',
-              WebkitBackdropFilter: 'blur(4px)',
+              fontSize: 12,
+              color: '#eaffff',
+              background: 'rgba(5,13,28,0.82)',
+              border: '1px solid rgba(64,224,208,0.62)',
+              boxShadow: '0 0 14px rgba(64,224,208,0.28)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
               maxWidth: 180,
             }}
           >
@@ -533,16 +624,16 @@ function NodeLabels({
           key={`gl:${l.id}`}
           position={[l.pos.x, l.pos.y - 0.09, l.pos.z]}
           center
-          distanceFactor={6.5}
-          zIndexRange={[5, 0]}
+          distanceFactor={5.8}
+          zIndexRange={[12, 0]}
           style={{ pointerEvents: 'none', opacity: goalOpacity }}
         >
           <span
             className="whitespace-nowrap font-semibold"
             style={{
               fontSize: 10,
-              color: l.done ? '#1d7a3f' : '#3c6b7a',
-              textShadow: '0 0 3px rgba(255,255,255,0.7)',
+              color: l.done ? '#9af7b3' : '#e2ffff',
+              textShadow: '0 0 7px rgba(64,224,208,0.9), 0 1px 2px rgba(0,0,0,0.8)',
               maxWidth: 140,
               display: 'inline-block',
             }}
@@ -675,10 +766,13 @@ function Scene3D({
       />
       <Rig theme={theme} />
       <Trunk data={data} growth={growth} />
-      {data.willow.strands.map((s, i) => (
-        <WillowStrand key={i} strand={s} growth={growth} />
+      {data.crown.roots.map((root, i) => (
+        <NaturalLimbMesh key={`root:${i}`} limb={root} growth={growth} />
       ))}
-      <Canopy blobs={data.willow.canopy} growth={growth} />
+      {data.crown.twigs.map((twig, i) => (
+        <NaturalLimbMesh key={`twig:${i}`} limb={twig} growth={growth} />
+      ))}
+      <Canopy blobs={data.crown.canopy} growth={growth} />
       {data.branches.map((br, i) => (
         <BranchMesh key={br.id} branch={br} growth={growth} index={i} />
       ))}
@@ -803,7 +897,7 @@ export default function LifeTree3D({
         </div>
       </div>
       <div className="pointer-events-none absolute bottom-4 left-4 z-20 rounded-xl border border-white/10 bg-[#050816]/55 px-3 py-2 backdrop-blur-md md:bottom-5 md:left-5">
-        <p className="text-[10px] text-navy-100/85"><span className="text-cosmic-cyan">Drag</span> to explore · <span className="text-cosmic-gold">click</span> a node to complete</p>
+        <p className="text-[10px] text-navy-100/85"><span className="text-cosmic-cyan">Bright branches</span> are life paths · <span className="text-cosmic-gold">click</span> a node to complete</p>
       </div>
 
       {/* Hover card */}
