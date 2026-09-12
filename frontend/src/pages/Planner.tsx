@@ -9,6 +9,7 @@ import type { PlannerEntry, TimeBlock, TimeBlockTag } from '../types';
 import { TIME_BLOCK_TAGS } from '../types';
 import { useTranslation } from '../i18n/t';
 import { useMusicPlayer } from '../components/MusicPlayerProvider';
+import { TimePicker } from '../components/TimePicker';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const today = new Date();
@@ -24,6 +25,7 @@ export default function PlannerPage() {
   const { planner, fetchPlanner, addPlannerEntry, editPlannerEntry } = useStore();
   const { currentTrack } = useMusicPlayer();
   const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [dayNote, setDayNote] = useState('');
   const [dayMood, setDayMood] = useState('neutral');
@@ -131,9 +133,24 @@ export default function PlannerPage() {
     closeModal();
   }
 
-  const todayTasks = sortTimeBlocks(
-    (getEntryForDate(todayStr)?.time_blocks || []).filter((t) => t.title.trim())
+  const selectedDateObj = new Date(`${selectedDate}T12:00:00`);
+  const selectedTasks = sortTimeBlocks(
+    (getEntryForDate(selectedDate)?.time_blocks || []).filter((t) => t.title.trim())
   );
+
+  function changeWeek(direction: number) {
+    setWeekOffset((offset) => offset + direction);
+    setSelectedDate((date) => {
+      const nextDate = new Date(`${date}T12:00:00`);
+      nextDate.setDate(nextDate.getDate() + direction * 7);
+      return toLocalDateStr(nextDate);
+    });
+  }
+
+  function goToToday() {
+    setWeekOffset(0);
+    setSelectedDate(todayStr);
+  }
 
   return (
     <div className="space-y-6 w-full">
@@ -144,10 +161,10 @@ export default function PlannerPage() {
         className="text-center md:text-left"
       >
         <h2 className="text-xl md:text-2xl font-display text-white">
-          {t(`planner.days.${DAYS[today.getDay()].toLowerCase()}`)}
+          {t(`planner.days.${DAYS[selectedDateObj.getDay()].toLowerCase()}`)}
         </h2>
         <p className="text-sm text-navy-200/60">
-          {formatDateShort(today)}
+          {formatDateShort(selectedDateObj)}
         </p>
       </motion.div>
 
@@ -155,19 +172,19 @@ export default function PlannerPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setWeekOffset(0)}
+            onClick={goToToday}
             className="text-xs text-navy-200/60 hover:text-white transition-colors"
           >
             {t('planner.today')}
           </button>
           <button
-            onClick={() => setWeekOffset((w) => w - 1)}
+            onClick={() => changeWeek(-1)}
             className="p-1.5 rounded-lg hover:bg-white/5 text-navy-200 transition-colors"
           >
             <ChevronLeft size={16} />
           </button>
           <button
-            onClick={() => setWeekOffset((w) => w + 1)}
+            onClick={() => changeWeek(1)}
             className="p-1.5 rounded-lg hover:bg-white/5 text-navy-200 transition-colors"
           >
             <ChevronRight size={16} />
@@ -185,14 +202,18 @@ export default function PlannerPage() {
             const dateStr = toLocalDateStr(day);
             const entry = getEntryForDate(dateStr);
             const isToday = dateStr === todayStr;
+            const isSelected = dateStr === selectedDate;
 
             return (
               <motion.button
                 key={dateStr}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => openModal(dateStr)}
+                onClick={() => setSelectedDate(dateStr)}
+                aria-pressed={isSelected}
                 className={`glass-card p-1.5 md:p-3 min-h-[100px] md:min-h-[190px] text-left transition-all ${
-                  isToday ? 'border-cosmic-cyan/40 ring-1 ring-cosmic-cyan/20' : ''
+                  isSelected
+                    ? 'border-cosmic-cyan/60 ring-1 ring-cosmic-cyan/30 bg-cosmic-cyan/5'
+                    : isToday ? 'border-cosmic-cyan/25' : ''
                 }`}
               >
                 <div className="flex items-center justify-between mb-1 md:mb-2">
@@ -263,13 +284,21 @@ export default function PlannerPage() {
         </div>
       </div>
 
-      {/* Today's task table */}
+      {/* Selected day's task table */}
       <div className="glass-card p-3 md:p-5">
-        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <Clock size={14} className="text-cosmic-cyan shrink-0" />
-          <span className="truncate">{t('planner.todayTasks', { day: t(`planner.days.${DAYS[today.getDay()].toLowerCase()}`) })}</span>
-        </h3>
-        {todayTasks.length > 0 ? (
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="min-w-0 text-sm font-semibold text-white flex items-center gap-2">
+            <Clock size={14} className="text-cosmic-cyan shrink-0" />
+            <span className="truncate">{t('planner.tasksForDay', { day: t(`planner.days.${DAYS[selectedDateObj.getDay()].toLowerCase()}`) })}</span>
+          </h3>
+          <button
+            onClick={() => openModal(selectedDate)}
+            className="shrink-0 rounded-lg border border-cosmic-cyan/25 bg-cosmic-cyan/10 px-2.5 py-1.5 text-xs text-cosmic-cyan transition-colors hover:bg-cosmic-cyan/20"
+          >
+            {t('planner.editDay')}
+          </button>
+        </div>
+        {selectedTasks.length > 0 ? (
           <div className="overflow-x-auto -mx-3 md:mx-0 px-3 md:px-0">
             <table className="w-full text-xs md:text-sm min-w-[400px] md:min-w-0">
               <thead>
@@ -282,7 +311,7 @@ export default function PlannerPage() {
                 </tr>
               </thead>
               <tbody>
-                {todayTasks.map((tb) => (
+                {selectedTasks.map((tb) => (
                   <tr
                     key={tb.id}
                     className={`border-b border-white/5 ${tb.done ? 'opacity-50' : ''}`}
@@ -317,7 +346,7 @@ export default function PlannerPage() {
           </div>
         ) : (
           <p className="text-sm text-navy-300/50 text-center py-6">
-            {t('planner.noTasks')}
+            {t('planner.noTasksForDay')}
           </p>
         )}
       </div>
@@ -422,18 +451,21 @@ export default function PlannerPage() {
                         key={task.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`glass-card p-3 space-y-2 ${
-                          task.done ? 'opacity-60' : ''
+                        className={`rounded-2xl border p-3.5 transition-colors ${
+                          task.done
+                            ? 'border-green-400/15 bg-green-400/[0.035]'
+                            : 'border-white/10 bg-navy-900/45 hover:border-cosmic-cyan/25'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
                           {/* Done checkbox */}
                           <button
                             onClick={() => toggleDone(task.id)}
-                            className={`shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                            aria-label={task.done ? 'Mark task as incomplete' : 'Mark task as complete'}
+                            className={`shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all ${
                               task.done
                                 ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-navy-400 hover:border-cosmic-cyan'
+                                : 'border-navy-400 hover:border-cosmic-cyan hover:bg-cosmic-cyan/10'
                             }`}
                           >
                             {task.done && <Check size={11} />}
@@ -447,9 +479,9 @@ export default function PlannerPage() {
                               updateTask(task.id, { title: e.target.value })
                             }
                             placeholder={t('planner.taskTitle')}
-                            className={`flex-1 bg-transparent border-none outline-none text-sm ${
+                            className={`flex-1 min-w-0 bg-transparent border-none outline-none text-sm font-medium ${
                               task.done
-                                ? 'line-through text-navy-300/40'
+                                ? 'line-through text-navy-200/50'
                                 : 'text-white'
                             }`}
                           />
@@ -457,16 +489,17 @@ export default function PlannerPage() {
                           {/* Delete */}
                           <button
                             onClick={() => removeTask(task.id)}
-                            className="text-navy-300/40 hover:text-cosmic-rose transition-colors shrink-0"
+                            aria-label="Remove task"
+                            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-navy-300/40 transition-colors hover:bg-cosmic-rose/10 hover:text-cosmic-rose"
                           >
                             <X size={14} />
                           </button>
                         </div>
 
                         {/* Description + times + tag */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 pl-7">
-                          <div className="md:col-span-2">
-                            <div className="flex items-center gap-1.5 text-navy-200/50">
+                        <div className="mt-3 grid grid-cols-1 gap-2 border-t border-white/5 pt-3 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-center">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 rounded-xl bg-white/[0.035] px-2.5 py-2 text-navy-200/50 focus-within:bg-white/[0.06]">
                               <FileText size={10} />
                               <input
                                 type="text"
@@ -477,18 +510,18 @@ export default function PlannerPage() {
                                   })
                                 }
                                 placeholder={t('planner.taskDesc')}
-                                className="bg-transparent border-none outline-none text-xs text-navy-200/70 placeholder-navy-300/30 w-full"
+                                className="min-w-0 w-full bg-transparent border-none outline-none text-xs text-navy-200/80 placeholder-navy-300/35"
                               />
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Tag size={10} className="text-navy-300/40 shrink-0" />
+                          <div className="flex items-center gap-2 rounded-xl bg-white/[0.035] px-2.5 py-1.5">
+                            <Tag size={11} className="text-navy-300/40 shrink-0" />
                             <select
                               value={task.tag || ''}
                               onChange={(e) =>
                                 updateTask(task.id, { tag: (e.target.value || undefined) as TimeBlockTag | undefined })
                               }
-                              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-navy-200/70 outline-none flex-1 min-w-0"
+                              className="min-w-0 flex-1 bg-transparent text-[11px] text-navy-200/80 outline-none"
                             >
                               <option value="">No tag</option>
                               {TIME_BLOCK_TAGS.map((tg) => (
@@ -496,45 +529,38 @@ export default function PlannerPage() {
                               ))}
                             </select>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() =>
-                                updateTask(task.id, { is_work: !task.is_work })
-                              }
-                              className={`p-1 rounded transition-colors ${
-                                task.is_work !== false
-                                  ? 'text-cosmic-cyan hover:text-white'
-                                  : 'text-navy-500 hover:text-navy-300'
-                              }`}
-                              title={task.is_work !== false ? 'Counts toward work hours' : 'Not counted in work hours'}
-                            >
-                              <Briefcase size={12} />
-                            </button>
-                            <div className="flex items-center gap-1 text-navy-200/50">
-                              <Clock size={10} />
-                              <input
-                                type="time"
-                                value={task.time}
-                                onChange={(e) =>
-                                  updateTask(task.id, { time: e.target.value })
+                          <div className="flex items-center justify-between gap-2 sm:justify-end">
+                              <button
+                                onClick={() =>
+                                  updateTask(task.id, { is_work: !task.is_work })
                                 }
-                                className="bg-transparent border-none outline-none text-xs text-navy-200/70 w-[70px]"
+                                className={`grid h-8 w-8 place-items-center rounded-xl transition-colors ${
+                                  task.is_work !== false
+                                    ? 'bg-cosmic-cyan/10 text-cosmic-cyan hover:bg-cosmic-cyan/20'
+                                    : 'bg-white/5 text-navy-500 hover:text-navy-300'
+                                }`}
+                                title={task.is_work !== false ? 'Counts toward work hours' : 'Not counted in work hours'}
+                              >
+                                <Briefcase size={12} />
+                              </button>
+                              <TimePicker
+                                value={task.time}
+                                onChange={(time) => updateTask(task.id, { time })}
                               />
+                              {task.done && (
+                                <div className="flex items-center gap-1.5 rounded-xl bg-green-400/5 px-2 py-1.5 text-navy-200/50">
+                                  <Clock size={10} />
+                                  <input
+                                    type="time"
+                                    value={task.completed_time || ''}
+                                    onChange={(e) =>
+                                      updateTask(task.id, { completed_time: e.target.value || null })
+                                    }
+                                    className="w-[70px] bg-transparent border-none outline-none text-xs text-green-400/80 [color-scheme:dark]"
+                                  />
+                                </div>
+                              )}
                             </div>
-                            {task.done && (
-                              <div className="flex items-center gap-1 text-navy-200/50">
-                                <Clock size={10} />
-                                <input
-                                  type="time"
-                                  value={task.completed_time || ''}
-                                  onChange={(e) =>
-                                    updateTask(task.id, { completed_time: e.target.value || null })
-                                  }
-                                  className="bg-transparent border-none outline-none text-xs text-green-400/60 w-[70px]"
-                                />
-                              </div>
-                            )}
-                          </div>
                         </div>
                       </motion.div>
                     ))}
