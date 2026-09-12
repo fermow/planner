@@ -189,6 +189,12 @@ export default function ResearchWordPage() {
     toggle.onclick = () => { const open = root.classList.toggle('documents-drawer-open'); toggle.textContent = open ? 'Close documents' : 'Documents'; };
     target.prepend(toggle); return () => toggle.remove();
   }, [draft]);
+  useEffect(() => {
+    const root = window.document.querySelector('.research-word');
+    if (!root || !draft) return;
+    root.classList.toggle('template-simple', draft.template === 'simple');
+    return () => root.classList.remove('template-simple');
+  }, [draft?.template]);
   const refs = draft?.references.join('\n') || '', tags = draft?.tags.join(', ') || '';
   return <div className={`research-word word-theme-${theme} h-[calc(100vh-7rem)] min-h-[620px] overflow-hidden rounded-2xl border border-white/10 shadow-2xl`}><div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)]">
     <aside className="flex min-h-0 flex-col border-b border-white/10 lg:border-b-0 lg:border-r"><div className="border-b border-white/10 p-4"><div className="mb-4 flex items-center justify-between"><div className="flex gap-2"><BookMarked className="text-cosmic-cyan" size={20} /><div><p className="text-sm font-semibold">Research Word</p><p className="text-[10px] opacity-60">writing workspace</p></div></div><button onClick={() => void create()} className="grid h-9 w-9 place-items-center rounded-xl bg-cosmic-cyan text-navy-950" title="New document"><FilePlus2 size={16} /></button></div><label className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2"><Search size={14} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search papers" className="min-w-0 flex-1 bg-transparent text-xs outline-none" /></label></div><div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">{docs.map((item) => <button key={item.id} onClick={() => select(item)} className={`w-full rounded-xl p-3 text-left ${item.id === id ? 'bg-cosmic-cyan/15' : 'hover:bg-white/5'}`}><div className="flex gap-2"><FileText size={14} className="mt-0.5 shrink-0 text-cosmic-cyan" /><div className="min-w-0"><p className="truncate text-xs font-medium">{item.title}</p><p className="mt-1 line-clamp-2 text-[10px] opacity-55">{item.abstract || plain(item.content) || 'No content yet'}</p></div></div></button>)}</div></aside>
