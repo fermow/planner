@@ -516,6 +516,13 @@ input, textarea, [contenteditable] {
   direction: auto;
 }
 
+/* Journal entries may contain Persian, English, or a mixture of both. */
+.journal-text {
+  text-align: start;
+  unicode-bidi: plaintext;
+}
+
+
 body {
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg-primary);
