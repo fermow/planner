@@ -79,7 +79,7 @@ Open **http://localhost:3030** — done.
 
 - Create deadlines with description, due date, priority, tags and subtasks
 - Track progress and mark as completed
-- **Smart reminders** — desktop/browser alerts at **3d, 2d, 1d and 1h** before the deadline, plus **overdue** alerts
+- **Smart reminders** — desktop alerts at **7d, 3d, 1d, 12h, 2h and 1h** before the deadline, plus an alert at the **exact due time**
 - **Startup catch-up** — missed notification windows fire on the next start
 
 ### 📅 Weekly Planner
@@ -268,6 +268,7 @@ make install        # runs scripts/install-docker.sh
 git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
+make enable-desktop-notifications
 ```
 
 **Manual alternative** (if you don't want to use `make`):
@@ -301,6 +302,7 @@ Then (re-login first):
 git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
+make enable-desktop-notifications
 ```
 
 > 💡 If you already have Docker installed on any Linux distro, just run `make doctor` to verify, then `make up`.
@@ -322,6 +324,7 @@ make install        # runs: brew install --cask docker
 git clone https://github.com/fermow/planner.git celestial-desk && cd celestial-desk
 make setup
 make up
+make enable-desktop-notifications
 ```
 
 > Apple Silicon (M1/M2/M3) and Intel both work — Docker Desktop runs natively.
@@ -345,7 +348,13 @@ make setup
 make up
 ```
 
-> ⚠️ `make` and the helper scripts are bash-based, so use **WSL2** or **Git Bash** — the plain `cmd.exe` / PowerShell prompt is not supported. Deadline notifications work on any OS via the browser's notification API (enable it in **Settings**); on Windows set `TZ` in `.env`.
+For real Windows desktop alerts (including when the browser is closed), open PowerShell in the project folder and run:
+
+```powershell
+py scripts\enable-desktop-notifications.py
+```
+
+This creates a per-user Task Scheduler entry that starts at sign-in. Windows 10 and 11, Home and Pro editions, use the same setup. Set `TZ` in `.env`.
 
 ---
 
@@ -417,16 +426,42 @@ Interactive docs are at **http://localhost:8000/docs**. All endpoints live under
 
 ## 🔔 Notification Engine
 
-An APScheduler loop inside the backend checks deadlines every 15 minutes:
+An APScheduler loop inside the backend checks deadlines every minute:
 
-- **3 days before** · **2 days before** · **1 day before** · **1 hour before** — notification
-- **Overdue** — critical notification
+- **7 days before** · **3 days before** · **1 day before** · **12 hours before** · **2 hours before** · **1 hour before** · **at the exact due time** — notification
 - **Startup catch-up** — if the machine was off during a notification window, all missed alerts fire on the next start
 - Every notification is written to `notification_history.json` and shown in the app's bell
 
 The backend stores every alert in-app (the bell in the header), and the frontend can also fire **native OS notifications** through the browser's Notification API — works the same on Windows, macOS and Linux. Enable it in **Settings → System Info → Notification Engine** (a browser permission prompt appears).
 
-> Native desktop `notify-send`/D-Bus notifications are still tried on Linux where available, and always fall back gracefully to the in-app bell.
+### Host desktop alerts (works even with the browser closed)
+
+The backend runs in Docker, which cannot reliably access your logged-in desktop session. Enable the included host-side bridge once; it polls the local backend and sends notifications through the operating system's notification service:
+
+**Debian / Ubuntu / other systemd Linux**
+
+```bash
+sudo apt install libnotify-bin  # only if notify-send is not already installed
+make enable-desktop-notifications
+```
+
+This creates a `systemd --user` service. Confirm it with `systemctl --user status celestial-desk-desktop-notifications`.
+
+**macOS**
+
+```bash
+make enable-desktop-notifications
+```
+
+This creates a user LaunchAgent. It uses macOS Notification Center.
+
+**Windows 10 / 11 (Home / Pro)**
+
+```powershell
+py scripts\enable-desktop-notifications.py
+```
+
+This creates a Task Scheduler entry that starts at sign-in and uses Windows toast notifications.
 
 ---
 

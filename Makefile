@@ -13,7 +13,7 @@ COMPOSE := $(shell (docker compose version >/dev/null 2>&1 && echo "docker compo
 
 .PHONY: help install doctor setup up start stop down restart ps \
         logs logs-backend logs-frontend build rebuild prod dev \
-        backup restore enable-boot clean print-urls
+        backup restore enable-boot enable-desktop-notifications clean print-urls
 
 help: ## Show this help
 	@printf '\n\033[1m✦ Celestial Desk — available commands\033[0m\n\n'
@@ -86,6 +86,9 @@ restore: ## Restore a backup: make restore FILE=data/backups/<file>.tar.gz
 
 enable-boot: ## Auto-start on boot (Linux / systemd only)
 	@sudo bash ./scripts/enable-boot.sh
+
+enable-desktop-notifications: ## Enable host desktop deadline alerts (Linux/macOS)
+	@bash ./scripts/enable-desktop-notifications.sh
 
 clean: ## Remove containers and anonymous volumes (keeps ./data)
 	$(COMPOSE) down -v --remove-orphans

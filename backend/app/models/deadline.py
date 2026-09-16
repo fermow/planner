@@ -40,10 +40,13 @@ class Deadline(BaseModel):
     status: str = "pending"
     progress: int = 0
     reminder_enabled: bool = True
+    reminded_7d: bool = False
     reminded_3d: bool = False
-    reminded_2d: bool = False
     reminded_1d: bool = False
+    reminded_12h: bool = False
+    reminded_2h: bool = False
     reminded_1h: bool = False
+    reminded_due: bool = False
     completed_at: Optional[str] = None
     created_at: str = Field(default_factory=now_iso)
     updated_at: str = Field(default_factory=now_iso)

@@ -31,6 +31,21 @@ def get_deadline(item_id: str):
 @router.patch("/{item_id}", response_model=Deadline)
 def update_deadline(item_id: str, body: DeadlineUpdate):
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    # A changed due date defines a new reminder timeline.  Without resetting
+    # these fields, moving a deadline would silently suppress its new alerts.
+    if "due_date" in updates:
+        updates.update({
+            "reminded_7d": False,
+            "reminded_3d": False,
+            "reminded_1d": False,
+            "reminded_12h": False,
+            "reminded_2h": False,
+            "reminded_1h": False,
+            "reminded_due": False,
+        })
+        existing = storage.get_by_id(COLLECTION, item_id)
+        if existing and existing.get("status") == "overdue":
+            updates["status"] = "pending"
     if updates.get("status") == "completed":
         updates["completed_at"] = now_iso()
     elif "status" in updates and updates["status"] != "completed":

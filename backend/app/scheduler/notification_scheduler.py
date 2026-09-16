@@ -20,6 +20,18 @@ scheduler = AsyncIOScheduler(timezone=settings.TZ)
 
 CHECK_INTERVAL_MINUTES = 1
 
+# These are deliberately individual reminders, rather than a generic
+# "due-soon" alert.  The flags are persisted with the deadline so a restart
+# cannot deliver the same reminder twice.
+DEADLINE_REMINDERS = (
+    ("7d", 7 * 24, "reminded_7d", "low"),
+    ("3d", 3 * 24, "reminded_3d", "normal"),
+    ("1d", 24, "reminded_1d", "normal"),
+    ("12h", 12, "reminded_12h", "normal"),
+    ("2h", 2, "reminded_2h", "critical"),
+    ("1h", 1, "reminded_1h", "critical"),
+)
+
 
 def _deliver_deadline_notification(
     deadline: dict,
@@ -43,7 +55,10 @@ def _parse_iso(due_str: str) -> datetime:
     """Parse ISO datetime string, handling both 'Z' and '+00:00' suffixes."""
     if due_str.endswith("Z"):
         due_str = due_str[:-1] + "+00:00"
-    return datetime.fromisoformat(due_str)
+    parsed = datetime.fromisoformat(due_str)
+    # Old hand-edited data may not include an offset. Treat it as UTC instead
+    # of letting a naive/aware datetime comparison stop all reminders.
+    return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
 
 
 def _check_deadline_notifications() -> None:
@@ -65,14 +80,7 @@ def _check_deadline_notifications() -> None:
         diff = due - now
         diff_hours = diff.total_seconds() / 3600
 
-        checks = [
-            ("3d", 72, "reminded_3d", "low"),
-            ("2d", 48, "reminded_2d", "low"),
-            ("1d", 24, "reminded_1d", "normal"),
-            ("1h", 1, "reminded_1h", "critical"),
-        ]
-
-        for check_type, hours_before, flag, urgency in checks:
+        for check_type, hours_before, flag, urgency in DEADLINE_REMINDERS:
             lower = hours_before - 0.02
             upper = hours_before + CHECK_INTERVAL_MINUTES / 60.0
 
@@ -82,21 +90,24 @@ def _check_deadline_notifications() -> None:
                 message = f"Due in {time_left}! {dl.get('description', '')}"
                 _deliver_deadline_notification(dl, title, message, check_type, urgency, flag)
 
-        if diff_hours <= 0 and dl.get("status") != "overdue":
-            storage.update("deadlines", dl["id"], {"status": "overdue"})
-            if not dl.get("reminded_1h", False):
+        # The due-time alert is independent of the one-hour alert.  The old
+        # implementation skipped it whenever the 1h alert had fired.
+        if diff_hours <= 0:
+            if dl.get("status") != "overdue":
+                storage.update("deadlines", dl["id"], {"status": "overdue"})
+            if not dl.get("reminded_due", False):
                 _deliver_deadline_notification(
                     dl,
-                    f"Deadline Missed: {dl['title']}",
-                    f"Was due at {dl['due_date']}",
-                    "overdue",
+                    f"Deadline due now: {dl['title']}",
+                    f"The deadline has reached its scheduled time. {dl.get('description', '')}",
+                    "due",
                     "critical",
+                    "reminded_due",
                 )
 
 
 async def startup_catch_up() -> None:
-    """On system startup, detect any deadlines where notifications were missed
-    and send urgent reminders for deadlines within 24 hours."""
+    """Deliver reminder points missed while the backend was not running."""
     logger.info("Running startup catch-up for missed notifications...")
     _check_deadline_notifications()
 
@@ -116,35 +127,21 @@ async def startup_catch_up() -> None:
         diff = due - now
         diff_hours = diff.total_seconds() / 3600
 
-        # Notify for any deadline within 24 hours (every startup)
-        if 0 < diff_hours <= 24:
-            title = f"⚠ Urgent: {dl['title']}"
-            hours_left = int(diff_hours)
-            message = f"Due in {hours_left}h! {dl.get('description', '')}"
-            _deliver_deadline_notification(dl, title, message, "startup_urgent", "critical")
-            logger.info(f"Recorded startup urgent notification for: {dl['title']} (due in {hours_left}h)")
+        # A reminder only counts as missed if the deadline already existed at
+        # that reminder point. This avoids, for example, sending a 7-day
+        # alert for a deadline the user created two days before it is due.
+        try:
+            created_at = _parse_iso(dl.get("created_at", dl["due_date"]))
+        except (ValueError, KeyError):
+            created_at = now
 
-        # Check specific missed windows for non-urgent deadlines
-        checks = [
-            ("3d", 72, "reminded_3d", "low"),
-            ("2d", 48, "reminded_2d", "low"),
-            ("1d", 24, "reminded_1d", "normal"),
-            ("1h", 1, "reminded_1h", "critical"),
-            ("overdue", 0, None, "critical"),
-        ]
-
-        for check_type, hours_before, flag, urgency in checks:
-            if flag is not None and dl.get(flag, False):
+        for check_type, hours_before, flag, urgency in DEADLINE_REMINDERS:
+            if dl.get(flag, False) or diff_hours <= 0 or diff_hours >= hours_before:
                 continue
-            lower = hours_before - 0.02
-            upper = hours_before + CHECK_INTERVAL_MINUTES / 60.0
-            if check_type == "overdue" and diff_hours <= 0:
-                title = f"Overdue: {dl['title']}"
-                message = f"Was due at {dl['due_date']}"
-                _deliver_deadline_notification(dl, title, message, check_type, urgency, flag)
-            elif lower < diff_hours <= upper and flag is not None:
+            reminder_time = due - timedelta(hours=hours_before)
+            if created_at <= reminder_time:
                 title = f"Missed Notice: {dl['title']}"
-                message = f"Deadline is within {hours_before} hour(s)! Was due at {dl['due_date']}"
+                message = f"The {check_type} reminder was missed. Due at {dl['due_date']}. {dl.get('description', '')}"
                 _deliver_deadline_notification(dl, title, message, f"catch_up_{check_type}", urgency, flag)
 
 
