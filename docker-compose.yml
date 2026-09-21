@@ -38,6 +38,12 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     networks:
       - celestial-net
     profiles:
@@ -48,18 +54,31 @@ services:
     container_name: celestial-desk-frontend-dev
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "npm install && npm run dev"
+    # Keep dependencies in a named volume. Reinstalling them at every boot
+    # leaves port 3030 open without an HTTP server for several minutes.
+    command: sh -c "test -d node_modules/vite || npm ci && exec npm run dev"
     ports:
       - "3030:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 15s
     networks:
       - celestial-net
 
 networks:
   celestial-net:
     driver: bridge
+
+volumes:
+  frontend-node-modules:

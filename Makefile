@@ -35,13 +35,13 @@ setup: doctor ## One-time setup: .env file + data directory
 ## ─── Run ────────────────────────────────────────────────────
 
 up: ## Build & start the app (development mode, hot reload)
-	$(COMPOSE) up --build -d
+	$(COMPOSE) up --build -d --wait
 	@$(MAKE) -s print-urls
 
 start: up ## Alias for `make up`
 
 prod: ## Build & start in production mode (optimized build)
-	$(COMPOSE) --profile prod up --build -d
+	$(COMPOSE) --profile prod up --build -d --wait
 	@$(MAKE) -s print-urls
 
 dev: ## Start only the frontend dev server (hot reload)
